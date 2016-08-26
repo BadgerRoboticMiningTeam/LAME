@@ -6,3 +6,6 @@ cmake .. [-DNOGUI:BOOL=true|false]
     > set to true to build base_station component (with GUI, QT dependency)
     > set to false to build without base_station component
     > default: true
+
+If you're on linux: run make
+             Windows: cmake --build .
