@@ -2,15 +2,15 @@
 # to build with no gui - run cmake with -DNOGUI:BOOL=true
 cmake_minimum_required(VERSION 3.1)
 
-set(CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 11)
 set(NOGUI false CACHE BOOL "Do not build the GUI component.")
 
 if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
   message(SEND_ERROR "In-source builds are not allowed.")
 endif ()
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_COLOR_MAKEFILE   ON)
+#set(CMAKE_VERBOSE_MAKEFILE ON)
+#set(CMAKE_COLOR_MAKEFILE   ON)
 
 # Remove 'lib' prefix for shared libraries on Windows
 if (WIN32)

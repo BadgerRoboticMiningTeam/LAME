@@ -21,7 +21,7 @@ typedef int SerialPortHandle;
 
 #define INVALID_SERIAL_PORT_HANDLE ((SerialPortHandle) (-1))
 
-namespace TurtlebotLibrary
+namespace LAME
 {
     class SerialPort
     {
