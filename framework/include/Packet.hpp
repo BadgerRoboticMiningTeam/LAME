@@ -8,11 +8,18 @@ namespace LAME
     enum class PacketParseStatus
     {
         SUCCESS,
+        BAD_BUFFER,
         BAD_HEADER,
+        BAD_OPCODE,
         BAD_END_BYTE,
         BAD_SIZE,
-        CRC_MISMATCH,
+        BAD_CRC,
         BAD_PAYLOAD
+    };
+
+    enum class PacketOpcode : uint8_t
+    {
+        Drive = 0x90
     };
 
     class Packet
@@ -21,19 +28,16 @@ namespace LAME
         static const uint16_t LAME_HEADER = 0xBEEF;
         static const uint8_t  LAME_END = 0x7F;
 
-        Packet(uint8_t opcode, uint8_t packet_size);
+        Packet(PacketOpcode opcode);
         virtual ~Packet();
         std::vector<uint8_t> Serialize();
         PacketParseStatus Parse(const uint8_t *buffer, int length);
-
-        uint8_t GetOpcode() const;
-        uint8_t GetSize() const;
+        PacketOpcode GetOpcode() const;
 
     protected:
         virtual std::vector<uint8_t> SerializePayload();
-        PacketParseStatus ParsePayload(const uint8_t *payload, int payload_length);
+        virtual PacketParseStatus ParsePayload(const uint8_t *payload, int payload_length);
 
-        uint8_t opcode;
-        uint8_t size; 
+        PacketOpcode opcode;
     };
 }

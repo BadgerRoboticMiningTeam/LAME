@@ -1,22 +1,18 @@
 #pragma once
 
 #ifdef _WIN32
-
-#include <windows.h>
-typedef HANDLE SerialPortHandle; 
-
+    #include <windows.h>
+    typedef HANDLE SerialPortHandle; 
 #else
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+    #include <termios.h>
+    #include <sys/socket.h>
+    #include <sys/types.h>
+    #include <string.h>
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <string.h>
-
-typedef int SerialPortHandle;
-
+    typedef int SerialPortHandle;
 #endif
 
 #define INVALID_SERIAL_PORT_HANDLE ((SerialPortHandle) (-1))
