@@ -2,7 +2,7 @@
 
 #ifdef _WIN32
     #include <windows.h>
-    typedef HANDLE SerialPortHandle; 
+    typedef HANDLE SerialPortHandle;
 #else
     #include <stdlib.h>
     #include <unistd.h>
@@ -11,7 +11,6 @@
     #include <sys/socket.h>
     #include <sys/types.h>
     #include <string.h>
-
     typedef int SerialPortHandle;
 #endif
 
@@ -26,11 +25,17 @@ namespace LAME
         SerialPort(const char *port, int baud);
         ~SerialPort();
         bool Open();
+        bool IsOpen() const;
         void Close();
-        bool PortIsOpen() const;
+
+        const char * GetPort() const;
+        int GetBaud() const;
+
+        void SetPortName(const char *port);
+        void SetBaud(int baud);
+
         int WriteData(const void *data, int size_bytes);
         int ReadData(void *data, int max_size_bytes);
-        
     private:
         SerialPortHandle handle;
         bool opened;
