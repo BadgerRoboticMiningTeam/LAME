@@ -1,14 +1,14 @@
 #include "Serial.hpp"
 #include <stdexcept>
 
-using namespace LAME;
-
+using namespace TurtlebotLibrary;
 
 SerialPort::SerialPort()
 {
     this->port = nullptr;
     this->baud = 0;
     this->opened = false;
+    this->handle = INVALID_SERIAL_PORT_HANDLE;
 }
 
 
@@ -17,6 +17,7 @@ SerialPort::SerialPort(const char *port, int baud)
     this->port = port;
     this->baud = baud;
     this->opened = false;
+	this->handle = INVALID_SERIAL_PORT_HANDLE;
 }
 
 SerialPort::~SerialPort()
@@ -24,10 +25,29 @@ SerialPort::~SerialPort()
     this->Close();
 }
 
-
-bool SerialPort::PortIsOpen() const
+bool SerialPort::IsOpen() const
 {
     return this->opened;
+}
+
+const char * SerialPort::GetPort() const
+{
+    return this->port;
+}
+
+int SerialPort::GetBaud() const
+{
+    return this->baud;
+}
+
+void SerialPort::SetPortName(const char *portname)
+{
+    this->port = portname;
+}
+
+void SerialPort::SetBaud(int baudrate)
+{
+    this->baud = baudrate;
 }
 
 #ifdef _WIN32
@@ -75,7 +95,7 @@ bool SerialPort::Open()
     if (!SetCommTimeouts(handle, &commTO))
     {
         CloseHandle(handle);
-        return INVALID_HANDLE_VALUE;
+        return false;
     }
 
     this->opened = true;
@@ -84,8 +104,10 @@ bool SerialPort::Open()
 
 void SerialPort::Close()
 {
-    if (handle != INVALID_SERIAL_PORT_HANDLE)
+	if (this->opened)
         CloseHandle(handle);
+
+    this->opened = false;
 }
 
 int SerialPort::WriteData(const void *data, int size_bytes)
@@ -143,8 +165,10 @@ bool SerialPort::Open()
 
 void SerialPort::Close()
 {
-    if (handle > 0)
+    if (this->opened)
         close(handle);
+
+    this->opened = false;
 }
 
 int SerialPort::WriteData(const void *data, int size_bytes)
