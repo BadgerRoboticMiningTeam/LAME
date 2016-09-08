@@ -20,7 +20,7 @@ std::vector<uint8_t> Drive::SerializePayload()
     return payload;
 }
 
-std::array<uint8_t, NUMBER_WHEELS> Drive::GetWheelSpeeds()
+std::array<uint8_t, Drive::NUMBER_WHEELS> Drive::GetWheelSpeeds()
 {
     return this->wheelSpeeds;
 }

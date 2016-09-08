@@ -1,7 +1,10 @@
 #pragma once
+
 #include "Service.hpp"
 #include "UdpSocket.hpp"
+#include "Timer.hpp"
 #include <vector>
+
 
 namespace LAME
 {
@@ -12,9 +15,11 @@ namespace LAME
         ~ServiceMaster();
         void AddService(Service s);
         void Run();
+
     private:
         UdpSocket socket;
         std::vector<Service> services;
-        int timer_interval;
+        std::chrono::milliseconds timer_interval;
+        Timer executor_timer;
     };
 }
