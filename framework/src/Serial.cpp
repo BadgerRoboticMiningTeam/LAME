@@ -110,7 +110,7 @@ void SerialPort::Close()
     this->opened = false;
 }
 
-int SerialPort::WriteData(const void *data, int size_bytes)
+int SerialPort::Write(const void *data, int size_bytes)
 {
     DWORD bytesWritten;
     
@@ -123,7 +123,7 @@ int SerialPort::WriteData(const void *data, int size_bytes)
     return bytesWritten;
 }
 
-int SerialPort::ReadData(void *data, int max_size_bytes)
+int SerialPort::Read(void *data, int max_size_bytes)
 {
     DWORD bytesRead;
     
@@ -171,7 +171,7 @@ void SerialPort::Close()
     this->opened = false;
 }
 
-int SerialPort::WriteData(const void *data, int size_bytes)
+int SerialPort::Write(const void *data, int size_bytes)
 {
     if (handle < 0)
         return -1;
@@ -179,7 +179,7 @@ int SerialPort::WriteData(const void *data, int size_bytes)
     return write(handle, data, size_bytes);
 }
 
-int SerialPort::ReadData(void *data, int max_size_bytes)
+int SerialPort::Read(void *data, int max_size_bytes)
 {
     if (handle < 0)
         return -1;

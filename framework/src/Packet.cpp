@@ -1,7 +1,6 @@
 #include "Packet.hpp"
 #include "bprintf.h"
 #include "crc8.h"
-#include <cerrno>
 
 using namespace LAME;
 

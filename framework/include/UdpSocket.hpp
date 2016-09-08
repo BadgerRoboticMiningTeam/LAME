@@ -24,6 +24,7 @@ namespace LAME
         UdpSocket(int port = 0);
         ~UdpSocket();
         bool Open();
+        bool IsOpen() const;
         void Close();
         int Write(const void *buffer, unsigned int size, struct sockaddr *dest_addr);
         int Read(void *buffer, unsigned int size, struct sockaddr *source_addr);
@@ -33,5 +34,6 @@ namespace LAME
         struct sockaddr socket_addr;
         int port;
         _socket_t handle;
+        bool isOpen;
     };
 }

@@ -8,11 +8,13 @@ constexpr _socket_t INVALID_SOCKET_HANDLE = ((_socket_t)(-1));
 UdpSocket::UdpSocket(int port)
 {
     this->port = port;
+    this->isOpen = false;
 }
 
 UdpSocket::~UdpSocket()
 {
-    this->Close();
+    if (this->isOpen)
+        this->Close();
 }
 
 bool UdpSocket::Open()
@@ -20,17 +22,17 @@ bool UdpSocket::Open()
     _socket_t sock_handle;
     struct sockaddr_in socket_addr;
 
-    #ifdef _WIN32
+#ifdef _WIN32
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
         return false;
-    #endif
+#endif
 
-    #ifdef _WIN32
+#ifdef _WIN32
     #define OPEN_FAIL() { WSACleanup(); return false; }
-    #else
+#else
     #define OPEN_FAIL() { return false; }
-    #endif
+#endif
 
     sock_handle = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock_handle == INVALID_SOCKET_HANDLE)
@@ -45,13 +47,17 @@ bool UdpSocket::Open()
         OPEN_FAIL();
 
     this->handle = sock_handle;
-
+    this->isOpen = true;
     return true;
     #undef OPEN_FAIL
 }
 
 void UdpSocket::Close()
 {
+    if (!this->isOpen)
+        return;
+
+    this->isOpen = false;
     #ifdef _WIN32
     closesocket(handle);
     #else
@@ -84,4 +90,9 @@ int UdpSocket::Read(void *buffer, unsigned int size, struct sockaddr *source_add
 int UdpSocket::GetPort() const
 {
     return port;
+}
+
+bool UdpSocket::IsOpen() const
+{
+    return this->isOpen;
 }

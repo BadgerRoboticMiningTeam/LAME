@@ -34,8 +34,8 @@ namespace LAME
         void SetPortName(const char *port);
         void SetBaud(int baud);
 
-        int WriteData(const void *data, int size_bytes);
-        int ReadData(void *data, int max_size_bytes);
+        int Write(const void *data, int size_bytes);
+        int Read(void *data, int max_size_bytes);
     private:
         SerialPortHandle handle;
         bool opened;

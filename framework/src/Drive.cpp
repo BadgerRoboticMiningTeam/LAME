@@ -19,3 +19,13 @@ std::vector<uint8_t> Drive::SerializePayload()
     payload.insert(payload.end(), this->wheelSpeeds.begin(), this->wheelSpeeds.end());
     return payload;
 }
+
+std::array<uint8_t, NUMBER_WHEELS> Drive::GetWheelSpeeds()
+{
+    return this->wheelSpeeds;
+}
+
+void Drive::SetWheelSpeeds(std::array<uint8_t, NUMBER_WHEELS> wheel_speeds)
+{
+    this->wheelSpeeds = wheel_speeds;
+}
