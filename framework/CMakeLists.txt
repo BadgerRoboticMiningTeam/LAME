@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(CommandFramework C CXX)
 
-find_package(THREADS REQUIRED)
+find_package(Threads REQUIRED)
 
 include_directories(include)
 file(GLOB FRAMEWORK_SRC src/*.c src/*.cpp)

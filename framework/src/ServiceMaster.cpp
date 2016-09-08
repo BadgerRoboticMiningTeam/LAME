@@ -1,6 +1,8 @@
 #include "ServiceMaster.hpp"
 #include "Service.hpp"
 #include <cstdint>
+#include <cstring>
+#include <climits>
 
 using namespace LAME;
 
