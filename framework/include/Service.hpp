@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Timer.hpp"
 #include <chrono>
 
 namespace LAME
@@ -11,7 +12,8 @@ namespace LAME
 
         Service(std::chrono::milliseconds interval, bool active);
         ~Service();
-        virtual void Execute();
+        
+        void ExecuteOnTime();
         virtual bool HandlePacket(const uint8_t *buffer, int length);
         std::chrono::milliseconds GetSleepInterval() const;
         void SetSleepInterval(std::chrono::milliseconds sleep_interval);
@@ -19,7 +21,9 @@ namespace LAME
         void SetActive(bool active);
 
     protected:
-        std::chrono::system_clock::time_point lastTimeRun;
+        virtual void Execute();
+
+        Timer execute_timer;
         std::chrono::milliseconds sleepInterval;
         bool isActive;
     };

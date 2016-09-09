@@ -1,33 +1,25 @@
 #include "ServiceMaster.hpp"
 #include "Service.hpp"
 #include <cstdint>
-#include <cstring>
-#include <climits>
 
 using namespace LAME;
 
 constexpr int READ_BUFFER_SIZE = 256;
 
-ServiceMaster::ServiceMaster(int port) : socket(port), timer_interval(0)
+ServiceMaster::ServiceMaster(int port) : socket(port)
 {
+    this->isRunning = false;
 }
 
 ServiceMaster::~ServiceMaster()
 {
 }
 
-void ServiceMaster::AddService(Service s)
+void ServiceMaster::AddService(std::shared_ptr<Service> s)
 {
-    // dynamic adding of services not allowed
-    if (this->executor_timer.IsRunning())
-        return;
-
     this->services.push_back(s);
-}
-
-static void ExecuteServices()
-{
-
+    if (this->isRunning)
+        s->ExecuteOnTime();
 }
 
 void ServiceMaster::Run()
@@ -37,20 +29,10 @@ void ServiceMaster::Run()
     if (!socket.Open())
         return;
 
-    // determine interval to run
-    this->timer_interval = std::chrono::milliseconds(INT_MAX);
-    for (const Service& s : this->services)
-    {
-        auto service_interval = s.GetSleepInterval();
-        if (service_interval != Service::RUN_ON_PACKET_RECEIVE && service_interval < this->timer_interval)
-            timer_interval = service_interval;
-    }
-
-
-    // set up timer
-    this->executor_timer.SetPeriod(this->timer_interval);
-    this->executor_timer.SetCallback(&ExecuteServices);
-    this->executor_timer.Start();
+    // run the services
+    for (auto& s : this->services)
+        if (s->GetSleepInterval() == Service::RUN_ON_PACKET_RECEIVE)
+            s->ExecuteOnTime();
 
     memset(read_buffer, 0, READ_BUFFER_SIZE);
 
@@ -60,16 +42,16 @@ void ServiceMaster::Run()
         if (bytes_read < 0)
             continue;
 
-        for (Service& s : this->services)
+        for (auto& s : this->services)
         {
-            if (!s.IsActive())
+            if (!s->IsActive())
                 continue;
 
-            if (!s.HandlePacket(read_buffer, bytes_read))
+            if (!s->HandlePacket(read_buffer, bytes_read))
                 continue;
 
-            if (s.GetSleepInterval() == Service::RUN_ON_PACKET_RECEIVE)
-                s.Execute();
+            if (s->GetSleepInterval() == Service::RUN_ON_PACKET_RECEIVE)
+                s->ExecuteOnTime();
 
             // packet issued to service - continue reading
             break;

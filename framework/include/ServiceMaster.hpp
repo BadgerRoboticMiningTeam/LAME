@@ -4,6 +4,7 @@
 #include "UdpSocket.hpp"
 #include "Timer.hpp"
 #include <vector>
+#include <memory>
 
 
 namespace LAME
@@ -13,13 +14,13 @@ namespace LAME
     public:
         ServiceMaster(int port);
         ~ServiceMaster();
-        void AddService(Service s);
+        void AddService(std::shared_ptr<Service> s);
         void Run();
 
     private:
         UdpSocket socket;
-        std::vector<Service> services;
+        std::vector<std::shared_ptr<Service>> services;
         std::chrono::milliseconds timer_interval;
-        Timer executor_timer;
+        bool isRunning;
     };
 }

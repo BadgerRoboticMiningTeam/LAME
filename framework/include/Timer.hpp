@@ -16,7 +16,7 @@ namespace LAME
         Timer(const Interval& timer_period, const TimerCallback& timer_callback, bool periodic = false);
         ~Timer();
         void Start();
-
+        void Stop();
         Interval GetPeriod() const;
         void SetPeriod(const Interval& new_period);
         TimerCallback GetCallback() const;

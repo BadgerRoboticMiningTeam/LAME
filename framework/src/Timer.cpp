@@ -19,15 +19,23 @@ Timer::Timer(const Interval& timer_period, const TimerCallback& timer_callback, 
 
 Timer::~Timer()
 {
-    this->isRunning = false;
-    if (this->workerThread.joinable())
-        this->workerThread.join();
+    this->Stop();
 }
 
 void Timer::Start()
 {
     this->isRunning = true;
     this->workerThread = std::thread(&Timer::TimerWorker, this);
+}
+
+void Timer::Stop()
+{
+    if (!this->isRunning)
+        return;
+        
+    this->isRunning = false;
+    if (this->workerThread.joinable())
+        this->workerThread.join();
 }
 
 Interval Timer::GetPeriod() const
