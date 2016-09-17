@@ -1,37 +1,37 @@
 #include "Drive.hpp"
 
-using namespace LAME;
+using namespace FrameworkSharp;
 
-Drive::Drive() : Packet(PacketOpcode::Drive)
+Drive::Drive() : Packet()
 {
-    this->wheelSpeeds = gcnew array<System::Byte>(NUMBER_WHEELS);
-    for (int i = 0; i < NUMBER_WHEELS; i++)
-        this->wheelSpeeds[i] = 0;
+    this->pkt = new Framework::Drive();
 }
 
-Drive::Drive(array<System::Byte>^ wheel_speeds) : Packet(PacketOpcode::Drive)
+Drive::Drive(array<System::Byte>^ wheel_speeds) : Packet()
 {
-    this->wheelSpeeds = wheel_speeds;
-}
+    std::array<uint8_t, Drive::NUMBER_WHEELS> native_speeds;
+    for (int i = 0; i < Drive::NUMBER_WHEELS; i++)
+        native_speeds[i] = wheel_speeds[i];
 
-std::vector<uint8_t> Drive::SerializePayload()
-{
-    std::vector<uint8_t> payload;
-    for (int i = 0; i < NUMBER_WHEELS; i++)
-    {
-        uint8_t spd = this->wheelSpeeds[i];
-        payload.push_back(spd);
-    }
-
-    return payload;
+    this->pkt = new Framework::Drive(native_speeds);
 }
 
 array<System::Byte>^ Drive::GetWheelSpeeds()
 {
-    return static_cast<array<System::Byte>^>(this->wheelSpeeds->Clone());
+    array<System::Byte>^ speeds = gcnew array<System::Byte>(Drive::NUMBER_WHEELS);
+    auto native_speeds = static_cast<Framework::Drive *>(this->pkt)->GetWheelSpeeds();
+
+    for (int i = 0; i < Drive::NUMBER_WHEELS; i++)
+        speeds[i] = native_speeds[i];
+
+    return speeds;
 }
 
 void Drive::SetWheelSpeeds(array<System::Byte>^ wheel_speeds)
 {
-    this->wheelSpeeds = wheel_speeds;
+    std::array<uint8_t, Drive::NUMBER_WHEELS> native_speeds;
+    for (int i = 0; i < Drive::NUMBER_WHEELS; i++)
+        native_speeds[i] = wheel_speeds[i];
+
+    static_cast<Framework::Drive *>(this->pkt)->SetWheelSpeeds(native_speeds);
 }

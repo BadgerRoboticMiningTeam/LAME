@@ -2,8 +2,10 @@
 
 #include <cstdint>
 #include <vector>
+#include "../../../framework/include/Packet.hpp"
+#include "../../../framework/include/Drive.hpp"
 
-namespace LAME
+namespace FrameworkSharp
 {
     public enum class PacketParseStatus : System::Byte
     {
@@ -25,19 +27,13 @@ namespace LAME
     public ref class Packet
     {
     public:
-        static const System::Int16 LAME_HEADER = 0xBEEF;
-        static const System::Byte  LAME_END = 0x7F;
-
-        Packet(PacketOpcode opcode);
+        Packet();
         virtual ~Packet();
         array<System::Byte>^ Serialize();
         PacketParseStatus Parse(array<System::Byte>^ buffer, System::Int32 length);
         PacketOpcode GetOpcode();
 
     protected:
-        virtual std::vector<uint8_t> SerializePayload();
-        virtual PacketParseStatus ParsePayload(array<System::Byte>^payload, System::Int32 payload_length);
-
-        PacketOpcode opcode;
+         Framework::Packet *pkt;
     };
 }

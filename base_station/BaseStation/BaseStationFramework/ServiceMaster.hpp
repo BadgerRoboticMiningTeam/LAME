@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Service.hpp"
-#include "UdpSocket.hpp"
+#include "../../../framework/include/UdpSocket.hpp"
 
 using System::Threading::Thread;
 using System::Collections::Generic::List;
@@ -17,7 +17,7 @@ namespace LAME
         void Run();
 
     private:
-        UdpSocket *socket;
+        Framework::UdpSocket *socket;
         List<Service^>^ services;
         System::Boolean isRunning;
     };

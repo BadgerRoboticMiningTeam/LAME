@@ -1,7 +1,7 @@
 #include "Serial.hpp"
 #include <stdexcept>
 
-using namespace LAME;
+using namespace Framework;
 
 SerialPort::SerialPort()
 {
@@ -59,7 +59,7 @@ bool SerialPort::Open()
     if (!this->port)
         return false;
 
-    handle = CreateFile(
+    handle = CreateFileA(
         port,
         GENERIC_READ | GENERIC_WRITE,
         0,

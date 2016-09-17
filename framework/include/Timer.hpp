@@ -4,7 +4,7 @@
 #include <thread>
 
 
-namespace LAME
+namespace Framework
 {
     typedef std::chrono::milliseconds Interval;
     typedef std::function<void(void)> TimerCallback;

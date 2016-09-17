@@ -7,7 +7,7 @@
 #include <memory>
 
 
-namespace LAME
+namespace Framework
 {
     class ServiceMaster
     {

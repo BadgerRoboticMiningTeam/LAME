@@ -21,13 +21,7 @@
     <ClInclude Include="ServiceMaster.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UdpSocket.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Packet.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="crc8.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Drive.hpp">
@@ -41,13 +35,7 @@
     <ClCompile Include="ServiceMaster.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UdpSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Packet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="crc8.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Drive.cpp">

@@ -3,7 +3,7 @@
 #include "Timer.hpp"
 #include <chrono>
 
-namespace LAME
+namespace Framework
 {
     class Service
     {

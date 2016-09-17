@@ -9,7 +9,7 @@ constexpr int READ_BUFFER_SIZE = 256;
 ServiceMaster::ServiceMaster(int port)
 {
     this->isRunning = false;
-    this->socket = new UdpSocket(port);
+    this->socket = new Framework::UdpSocket(port);
     this->services = gcnew List<Service^>();
 }
 

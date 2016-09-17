@@ -28,7 +28,7 @@
 
 uint8_t compute_crc8(const void *buffer, int len)
 {
-    const uint8_t *data = buffer;
+    const uint8_t *data = (const uint8_t *)buffer;
     uint16_t crc = 0;
     uint8_t i, j;
 

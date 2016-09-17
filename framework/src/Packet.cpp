@@ -2,7 +2,7 @@
 #include "bprintf.h"
 #include "crc8.h"
 
-using namespace LAME;
+using namespace Framework;
 
 constexpr uint8_t PACKET_HEADER_SIZE = sizeof(Packet::LAME_HEADER)  +
                                        sizeof(uint8_t)              + // opcode

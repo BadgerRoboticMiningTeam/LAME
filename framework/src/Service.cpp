@@ -1,7 +1,7 @@
 #include "Service.hpp"
 #include <functional>
 
-using namespace LAME;
+using namespace Framework;
 
 
 Service::Service(std::chrono::milliseconds interval, bool active)

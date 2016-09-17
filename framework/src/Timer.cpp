@@ -1,6 +1,6 @@
 #include "Timer.hpp"
 
-using namespace LAME;
+using namespace Framework;
 
 
 Timer::Timer()
