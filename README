@@ -1,11 +1,14 @@
 To build:
 
+You must have JoystickLibrary (https://github.com/WisconsinRobotics/JoystickLibrary) cloned in the top level, with the static C++ library copied into the top level.
+
 mkdir build
 cd build
-cmake .. [-DNOGUI:BOOL=true|false]
-    > set to true to build base_station component (with GUI, QT dependency)
-    > set to false to build without base_station component
-    > default: true
+cmake .. 
 
 If you're on linux: run make
              Windows: cmake --build .
+
+To build the GUI:
+
+You will need the C# version of JoystickLibrary, and copy the dll into the BaseStation folder. Then open the solution and build within Visual Studio.

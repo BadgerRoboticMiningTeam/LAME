@@ -1,5 +1,4 @@
 # Adapted from http://stackoverflow.com/questions/16398937/cmake-and-finding-other-projects-and-their-dependencies
-# to build with no gui - run cmake with -DNOGUI:BOOL=true
 cmake_minimum_required(VERSION 3.1)
 
 set (CMAKE_CXX_STANDARD 11)
@@ -12,6 +11,12 @@ endif ()
 if (WIN32)
   set(CMAKE_SHARED_LIBRARY_PREFIX "")
 endif ()
+
+# set top level as add'l search path for libraries
+link_directories(.)
+
+# set include for JoystickLibrary
+include_directories(JoystickLibrary/cpp/include)
 
 # configure subprojects
 add_subdirectory(framework)

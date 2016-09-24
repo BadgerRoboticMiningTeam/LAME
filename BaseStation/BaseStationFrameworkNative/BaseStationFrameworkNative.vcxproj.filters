@@ -15,63 +15,63 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\framework\include\bprintf.h">
+    <ClInclude Include="..\..\framework\include\bprintf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\framework\include\crc8.h">
+    <ClInclude Include="..\..\framework\include\crc8.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\framework\include\Drive.hpp">
+    <ClInclude Include="..\..\framework\include\Drive.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\framework\include\Framework.hpp">
+    <ClInclude Include="..\..\framework\include\Framework.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\framework\include\Packet.hpp">
+    <ClInclude Include="..\..\framework\include\Packet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\framework\include\Serial.hpp">
+    <ClInclude Include="..\..\framework\include\Serial.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\framework\include\Service.hpp">
+    <ClInclude Include="..\..\framework\include\Service.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\framework\include\ServiceMaster.hpp">
+    <ClInclude Include="..\..\framework\include\ServiceMaster.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\framework\include\Timer.hpp">
+    <ClInclude Include="..\..\framework\include\Timer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\framework\include\UdpSocket.hpp">
+    <ClInclude Include="..\..\framework\include\UdpSocket.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\framework\src\bprintf.c">
+    <ClCompile Include="..\..\framework\src\bprintf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\framework\src\crc8.c">
+    <ClCompile Include="..\..\framework\src\crc8.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\framework\src\Drive.cpp">
+    <ClCompile Include="..\..\framework\src\Drive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\framework\src\Packet.cpp">
+    <ClCompile Include="..\..\framework\src\Packet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\framework\src\Serial.cpp">
+    <ClCompile Include="..\..\framework\src\Serial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\framework\src\Service.cpp">
+    <ClCompile Include="..\..\framework\src\Service.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\framework\src\ServiceMaster.cpp">
+    <ClCompile Include="..\..\framework\src\ServiceMaster.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\framework\src\Timer.cpp">
+    <ClCompile Include="..\..\framework\src\Timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\framework\src\UdpSocket.cpp">
+    <ClCompile Include="..\..\framework\src\UdpSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

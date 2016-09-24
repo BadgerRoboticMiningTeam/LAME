@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Service.hpp"
-#include "../../../framework/include/UdpSocket.hpp"
+#include "../../framework/include/UdpSocket.hpp"
 
 using System::Threading::Thread;
 using System::Collections::Generic::List;

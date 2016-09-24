@@ -2,8 +2,8 @@
 
 #include <cstdint>
 #include <vector>
-#include "../../../framework/include/Packet.hpp"
-#include "../../../framework/include/Drive.hpp"
+#include "../../framework/include/Packet.hpp"
+#include "../../framework/include/Drive.hpp"
 
 namespace FrameworkSharp
 {
