@@ -1,6 +1,10 @@
 #ifndef _BPRINTF_H
 #define _BPRINTF_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum
 {
     Big, 
@@ -23,5 +27,8 @@ int bscanf(
     ...
 );
 
+#endif
 
+#ifdef __cplusplus
+}
 #endif

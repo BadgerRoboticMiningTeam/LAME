@@ -2,29 +2,34 @@
 
 #include "Timer.hpp"
 #include <chrono>
+#include "ServiceMaster.hpp"
 
 namespace Framework
 {
+    class ServiceMaster;
+
     class Service
     {
     public:
-        const static std::chrono::milliseconds RUN_ON_PACKET_RECEIVE;
+        const static int RUN_ON_PACKET_RECEIVE = -1;
 
-        Service(std::chrono::milliseconds interval, bool active);
+        Service(ServiceMaster* master);
+        Service(ServiceMaster* master, int interval, bool active);
         ~Service();
         
         void ExecuteOnTime();
         virtual bool HandlePacket(const uint8_t *buffer, int length);
-        std::chrono::milliseconds GetSleepInterval() const;
-        void SetSleepInterval(std::chrono::milliseconds sleep_interval);
+        int GetSleepInterval() const;
+        void SetSleepInterval(int sleep_interval);
         bool IsActive() const;
         void SetActive(bool active);
 
     protected:
         virtual void Execute();
 
+        ServiceMaster *serviceMaster;
         Timer execute_timer;
-        std::chrono::milliseconds sleepInterval;
+        int sleepInterval;
         bool isActive;
     };
 }

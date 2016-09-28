@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Framework.hpp"
+#include "joystick.h"
 
 namespace LAME
 {

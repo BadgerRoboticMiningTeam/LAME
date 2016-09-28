@@ -22,6 +22,21 @@ void ServiceMaster::AddService(std::shared_ptr<Service> s)
         s->ExecuteOnTime();
 }
 
+void ServiceMaster::RegisterEndpoint(struct sockaddr *addr)
+{
+    this->dest = addr;
+}
+
+void ServiceMaster::SendPacket(Packet *pkt)
+{
+    if (pkt == nullptr || this->dest == nullptr)
+        return;
+
+    auto data = pkt->Serialize();
+    uint8_t *buffer = &data[0];
+    this->socket.Write(buffer, data.size(), this->dest);
+}
+
 void ServiceMaster::Run()
 {
     uint8_t read_buffer[READ_BUFFER_SIZE];

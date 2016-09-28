@@ -3,9 +3,16 @@
 
 using namespace Framework;
 
-
-Service::Service(std::chrono::milliseconds interval, bool active)
+Service::Service(ServiceMaster* master)
 {
+    this->serviceMaster = master;
+    this->sleepInterval = RUN_ON_PACKET_RECEIVE;
+    this->isActive = false;
+}
+
+Service::Service(ServiceMaster* master, int interval, bool active)
+{
+    this->serviceMaster = master;
     this->sleepInterval = interval;
     this->isActive = active;
 }
@@ -24,12 +31,12 @@ bool Service::HandlePacket(const uint8_t *buffer, int length)
     return false;
 }
 
-std::chrono::milliseconds Service::GetSleepInterval() const
+int Service::GetSleepInterval() const
 {
     return this->sleepInterval;
 }
 
-void Service::SetSleepInterval(std::chrono::milliseconds sleep_interval)
+void Service::SetSleepInterval(int sleep_interval)
 {
     this->sleepInterval = sleep_interval;
 }
@@ -46,8 +53,11 @@ void Service::SetActive(bool active)
 
 void Service::ExecuteOnTime()
 {
+    if (this->sleepInterval == RUN_ON_PACKET_RECEIVE)
+        return;
+
     execute_timer.SetCallback(std::bind(&Service::Execute, this));
-    execute_timer.SetPeriod(this->sleepInterval);
+    execute_timer.SetPeriod(std::chrono::milliseconds(this->sleepInterval));
     execute_timer.SetPeriodic(true);
     execute_timer.Start();
 }
