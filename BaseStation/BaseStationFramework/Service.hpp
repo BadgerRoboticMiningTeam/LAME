@@ -2,7 +2,7 @@
 
 using System::Threading::Timer;
 
-namespace LAME
+namespace FrameworkSharp
 {
     public ref class Service
     {

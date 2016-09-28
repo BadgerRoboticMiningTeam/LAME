@@ -1,12 +1,16 @@
 #pragma once
+#using <System.dll>
 
 #include "Service.hpp"
+#include "Packet.hpp"
 #include "../../framework/include/UdpSocket.hpp"
 
 using System::Threading::Thread;
 using System::Collections::Generic::List;
+using System::Net::IPEndPoint;
+using System::Net::Sockets::UdpClient;
 
-namespace LAME
+namespace FrameworkSharp
 {
     public ref class ServiceMaster
     {
@@ -15,11 +19,15 @@ namespace LAME
         ~ServiceMaster();
         void AddService(Service^ s);
         void Run();
+        void SendPacket(Packet^ p);
+        void RegisterEndpoint(IPEndPoint^ dest);
 
     private:
-        Framework::UdpSocket *socket;
         List<Service^>^ services;
         System::Boolean isRunning;
+        UdpClient^ socket;
+        IPEndPoint^ dest;
+
     };
 }
 

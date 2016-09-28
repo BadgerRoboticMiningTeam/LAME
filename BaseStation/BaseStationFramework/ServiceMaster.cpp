@@ -2,24 +2,17 @@
 #include "Service.hpp"
 #include <cstdint>
 
-using namespace LAME;
-
-constexpr int READ_BUFFER_SIZE = 256;
+using namespace FrameworkSharp;
 
 ServiceMaster::ServiceMaster(int port)
 {
     this->isRunning = false;
-    this->socket = new Framework::UdpSocket(port);
     this->services = gcnew List<Service^>();
+    this->socket = gcnew UdpClient(port);
 }
 
 ServiceMaster::~ServiceMaster()
 {
-    if (this->socket)
-    {
-        this->socket->Close();
-        delete this->socket;
-    }
 }
 
 void ServiceMaster::AddService(Service^ s)
@@ -29,13 +22,25 @@ void ServiceMaster::AddService(Service^ s)
         s->ExecuteOnTime();
 }
 
-void ServiceMaster::Run()
+void ServiceMaster::SendPacket(Packet^ p)
 {
-    uint8_t raw_read_buffer[READ_BUFFER_SIZE];
-
-    if (!socket->Open())
+    if (p == nullptr)
         return;
 
+    auto data = p->Serialize();
+    if (data == nullptr)
+        return;
+
+    this->socket->Send(data, data->Length);
+}
+
+void ServiceMaster::RegisterEndpoint(IPEndPoint^ addr)
+{
+    this->dest = addr;
+}
+
+void ServiceMaster::Run()
+{
     // run the services
     for (int i = 0; i < this->services->Count; i++)
     {
@@ -44,17 +49,12 @@ void ServiceMaster::Run()
             s->ExecuteOnTime();
     }
 
-    memset(raw_read_buffer, 0, READ_BUFFER_SIZE);
-
     while (true)
     {
-        int bytes_read = socket->Read(raw_read_buffer, READ_BUFFER_SIZE, nullptr);
-        if (bytes_read < 0)
+        auto src = gcnew System::Net::IPEndPoint(System::Net::IPAddress::Any, 0);
+        auto data = this->socket->Receive(src);
+        if (data->Length <= 0)
             continue;
-
-        array<System::Byte>^ managed_buffer = gcnew array<System::Byte>(bytes_read);
-        for (int i = 0; i < bytes_read; i++)
-            managed_buffer[i] = raw_read_buffer[i];
 
         for (int i = 0; i < this->services->Count; i++)
         {
@@ -62,7 +62,7 @@ void ServiceMaster::Run()
             if (!s->IsActive)
                 continue;
 
-            if (!s->HandlePacket(managed_buffer, bytes_read))
+            if (!s->HandlePacket(data, data->Length))
                 continue;
 
             if (s->SleepInterval == Service::RUN_ON_PACKET_RECEIVE)

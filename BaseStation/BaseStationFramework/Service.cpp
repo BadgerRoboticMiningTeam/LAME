@@ -1,7 +1,7 @@
 #include "Service.hpp"
 #include <functional>
 
-using namespace LAME;
+using namespace FrameworkSharp;
 using System::Threading::TimerCallback;
 
 void ExecuteTimerCallback(System::Object^ service)
