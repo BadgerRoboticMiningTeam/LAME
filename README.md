@@ -10,6 +10,7 @@ The framework houses common code required for both the base station and robot co
 
 #### Packet Structure
 The robot and base station communicate via packets. The structure is given below. 
+
 | Byte Index  |     0 - 1     | 2 | 3 | 4 | 5 ... n - 1 | n |
 | ----------- | ------------- | ----------- | ------------- | ----------- | ------------- | ------------ |
 | Description | Header (0xBEEF) | Opcode | Payload size | Payload CRC | Payload | End bytes (0x7F) |
