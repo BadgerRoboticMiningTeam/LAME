@@ -46,7 +46,7 @@ void ServiceMaster::Run()
 
     // run the services
     for (auto& s : this->services)
-        if (s->GetSleepInterval() == Service::RUN_ON_PACKET_RECEIVE)
+        if (s->GetSleepInterval() != Service::RUN_ON_PACKET_RECEIVE)
             s->ExecuteOnTime();
 
     memset(read_buffer, 0, READ_BUFFER_SIZE);
