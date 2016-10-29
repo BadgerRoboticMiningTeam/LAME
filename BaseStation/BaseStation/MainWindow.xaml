@@ -5,8 +5,173 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BaseStation"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
+        Title="Base Station" MinHeight="700" MinWidth="1100" Height="700" Width="1100">
+    <Grid Background="White">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Status & Configuration -->
+        <Border Grid.Column="0" BorderBrush="Black" BorderThickness="0 1 2 1" >
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="0.5*"/>
+                    <RowDefinition Height="4.5*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Connected -->
+                <Border Grid.Row="0" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Viewbox Grid.Column="0">
+                            <Label HorizontalAlignment="Center" 
+                               VerticalContentAlignment="Center"
+                               FontSize="16">
+                                Robot Connection
+                            </Label>
+                        </Viewbox>
+
+                        <Ellipse x:Name="connectedStatus"
+                                 Grid.Column="1" Fill="Red" 
+                                 Height="28" Width="28"/>
+                    </Grid>
+                </Border>
+
+                <!-- robot ip -->
+                <Border Grid.Row="1" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <Grid Margin="0 0 2 0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="2*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Viewbox Grid.Column="0" Grid.Row="1">
+                            <Label HorizontalAlignment="Center" 
+                               VerticalContentAlignment="Center">
+                                IP Address:
+                            </Label>
+                        </Viewbox>
+
+                        <TextBox x:Name="robotIpTextBox" Grid.Column="1" Grid.Row="1" FontSize="14" VerticalContentAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- robot mode -->
+                <Border Grid.Row="2" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="2*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Viewbox Grid.Column="0" Grid.Row="1">
+                            <Label HorizontalAlignment="Center" 
+                               VerticalContentAlignment="Center">
+                                Robot Mode:
+                            </Label>
+                        </Viewbox>
+
+                        <ComboBox x:Name="robotModeListBox" Grid.Column="1" Grid.Row="1"  VerticalContentAlignment="Center">
+                            <ComboBoxItem>Remote Drive</ComboBoxItem>
+                            <ComboBoxItem>AI</ComboBoxItem>
+                        </ComboBox>
+                    </Grid>
+                </Border>
+
+                <!-- request camera image block -->
+                <Border Grid.Row="3" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <Button x:Name="requestCameraButton" IsEnabled="False" FontSize="16">
+                        Request Camera Image
+                    </Button>
+                </Border>
+
+                <!-- ???? block -->
+                <Border Grid.Row="4" BorderBrush="Black" BorderThickness="0 0 0 1" Background="LightGray">
+                </Border>
+
+                <!-- "Go" button -->
+                <Border Grid.Row="5" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <Button Background="Green" Foreground="White"
+                            FontSize="24"  x:Name="goButton">
+                        Start
+                    </Button>
+                </Border>
+
+                <!-- e-stop -->
+                <Grid Grid.Row="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Background="Red" 
+                            FontSize="16" Foreground="White"
+                            x:Name="eStopButton" IsEnabled="False">
+                        E-STOP
+                    </Button>
+
+                    <Button Grid.Column="1" Background="Gray"
+                            FontSize="16" Foreground="White"
+                            x:Name="clearEStopButton" IsEnabled="False">
+                        Clear E-Stop
+                    </Button>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Camera & Logger -->
+        <Border Grid.Column="1" BorderThickness="0 0 1 0" BorderBrush="Black">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Image Grid.Row="0" x:Name="cameraImage" Stretch="Fill"/>
+
+                <Border Grid.Row="1" BorderBrush="Black" BorderThickness="0 1 0 0 ">
+                    <local:LoggerControl x:Name="loggerControl" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Arena Overlay & Metrics -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Canvas x:Name="arenaOverlayCanvas" Grid.Row="0">
+                <Canvas.Background>
+                    <ImageBrush ImageSource="arena.png" Stretch="Uniform"/>
+                </Canvas.Background>
+            </Canvas>
+
+            <!-- Metrics -->
+            <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1 1 0 0 ">
+            </Border>
+        </Grid>
     </Grid>
 </Window>
