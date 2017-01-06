@@ -1,14 +1,13 @@
 #pragma once
 
+#include <functional>
 #include <chrono>
-#include <thread>
 
+typedef std::chrono::milliseconds Interval;
+typedef std::function<void(void)> TimerCallback;
 
 namespace LAME
 {
-    typedef std::chrono::milliseconds Interval;
-    typedef std::function<void(void)> TimerCallback;
-
     class Timer
     {
     public:
@@ -26,12 +25,15 @@ namespace LAME
         bool IsRunning() const;
 
     private:
-        void TimerWorker();
+        bool InitializeImpl();
+        void CleanupImpl();
 
-        std::thread workerThread;
         Interval period;
         TimerCallback callback;
         bool isPeriodic;
         bool isRunning;
+
+        struct TimerImpl;
+        TimerImpl *impl;
     };
 }

@@ -3,11 +3,8 @@
 
 using namespace LAME;
 
-Service::Service(ServiceMaster* master)
+Service::Service(ServiceMaster* master) : Service(master, RUN_ON_PACKET_RECEIVE, false)
 {
-    this->serviceMaster = master;
-    this->sleepInterval = RUN_ON_PACKET_RECEIVE;
-    this->isActive = false;
 }
 
 Service::Service(ServiceMaster* master, int interval, bool active)
