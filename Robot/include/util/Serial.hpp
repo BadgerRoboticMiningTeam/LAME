@@ -16,7 +16,7 @@
 
 #define INVALID_SERIAL_PORT_HANDLE ((SerialPortHandle) (-1))
 
-namespace Framework
+namespace LAME
 {
     class SerialPort
     {

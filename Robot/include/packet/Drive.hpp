@@ -3,7 +3,7 @@
 #include "Packet.hpp"
 #include <array>
 
-namespace Framework
+namespace LAME
 {
     class Drive : public Packet
     {

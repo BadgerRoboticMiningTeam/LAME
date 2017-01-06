@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace Framework
+namespace LAME
 {
     enum class PacketParseStatus
     {

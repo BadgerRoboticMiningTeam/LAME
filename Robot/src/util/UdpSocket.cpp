@@ -1,7 +1,7 @@
 #include "UdpSocket.hpp"
 #include <cstring>
 
-using namespace Framework;
+using namespace LAME;
 
 constexpr _socket_t INVALID_SOCKET_HANDLE = ((_socket_t)(-1));
 

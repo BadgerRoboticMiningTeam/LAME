@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Framework.hpp"
+#include "Service.hpp"
 #include "joystick.h"
 
 namespace LAME
 {
-    class DirectDriveService : public Framework::Service
+    class DirectDriveService : public Service
     {
     public:
     private:

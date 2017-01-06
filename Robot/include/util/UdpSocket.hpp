@@ -16,7 +16,7 @@
 #endif
 
 
-namespace Framework
+namespace LAME
 {
     class UdpSocket
     {

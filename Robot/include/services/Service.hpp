@@ -4,7 +4,7 @@
 #include <chrono>
 #include "ServiceMaster.hpp"
 
-namespace Framework
+namespace LAME
 {
     class ServiceMaster;
 

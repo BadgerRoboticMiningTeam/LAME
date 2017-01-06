@@ -1,11 +1,29 @@
 cmake_minimum_required(VERSION 3.1)
-project(Robot C CXX)
+project(LAME)
 
-include_directories(include)
-file(GLOB ROBOT_SRC src/*.c src/*.cpp include/*.hpp)
+# external dependencies
+find_package(Threads REQUIRED)
+#find_package(OpenCV REQUIRED)
 
-add_definitions(${CommandFramework_DEFINITIONS})
-include_directories(${CommandFramework_INCLUDE_DIRS})
+# C++11 required
+set (CMAKE_CXX_STANDARD 11)
+
+if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+  message(SEND_ERROR "In-source builds are not allowed.")
+endif ()
+
+# Remove 'lib' prefix for shared libraries on Windows
+if (WIN32)
+  set(CMAKE_SHARED_LIBRARY_PREFIX "")
+endif ()
+
+# JoystickLibrary.lib should be located in the Robot/ folder
+link_directories(.)
+
+# include directories
+include_directories(../JoystickLibrary/cpp/include include include/packet include/services include/util)
+
+file(GLOB ROBOT_SRC src/**/*.c src/**/*.cpp src/*.cpp include/**/*.hpp)
 
 add_executable(${PROJECT_NAME} ${ROBOT_SRC})
-target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} CommandFramework JoystickLibrary)
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} JoystickLibrary)

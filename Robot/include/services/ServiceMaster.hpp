@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 
-namespace Framework
+namespace LAME
 {
     class Service;
 

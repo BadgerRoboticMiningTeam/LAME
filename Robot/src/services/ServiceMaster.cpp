@@ -2,7 +2,7 @@
 #include "Service.hpp"
 #include <cstdint>
 
-using namespace Framework;
+using namespace LAME;
 
 constexpr int READ_BUFFER_SIZE = 256;
 

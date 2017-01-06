@@ -4,6 +4,7 @@
 JoystickLibrary/
 *.lib
 *.vscode
+*.dll
 
 # User-specific files
 *.suo

@@ -1,6 +1,6 @@
 #include "Drive.hpp"
 
-using namespace Framework;
+using namespace LAME;
 
 Drive::Drive() : Packet(PacketOpcode::Drive)
 {

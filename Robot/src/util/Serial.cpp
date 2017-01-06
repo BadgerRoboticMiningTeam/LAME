@@ -1,7 +1,7 @@
 #include "Serial.hpp"
 #include <stdexcept>
 
-using namespace Framework;
+using namespace LAME;
 
 SerialPort::SerialPort()
 {

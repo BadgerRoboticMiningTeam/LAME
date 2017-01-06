@@ -1,7 +1,7 @@
 #include "Service.hpp"
 #include <functional>
 
-using namespace Framework;
+using namespace LAME;
 
 Service::Service(ServiceMaster* master)
 {
