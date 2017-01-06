@@ -19,7 +19,23 @@ namespace LAME
 
     enum class PacketOpcode : uint8_t
     {
-        Drive = 0x90
+        Drive = 0x90,
+
+        SwitchToAIDrive = 0x01,
+        SwitchToRemoteDrive = 0x02,
+        EStop = 0x03,
+        ClearEStop = 0x04,
+
+        QueryDriveMode = 0x10,
+        QueryBinWeight = 0x11,
+        QueryLocation = 0x12,
+        QueryCameraImage = 0x13,
+        QueryHeartbeat = 0x14,
+
+        ReportDriveMode = 0x40,
+        ReportBinWeight = 0x41,
+        ReportLocation = 0x42,
+        ReportHeartbeat = 0x44
     };
 
     class Packet
