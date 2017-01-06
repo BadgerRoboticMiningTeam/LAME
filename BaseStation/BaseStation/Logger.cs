@@ -14,15 +14,15 @@ namespace BaseStation
 
     class Logger : IDisposable
     {
-        private static Logger instance;
-        private static readonly Dictionary<LoggerLevel, string> levelMap = new Dictionary<LoggerLevel, string> {
+        static Logger instance;
+        static readonly Dictionary<LoggerLevel, string> levelMap = new Dictionary<LoggerLevel, string> {
             { LoggerLevel.Info, "INFO" },
             { LoggerLevel.Warning, "WARN" },
             { LoggerLevel.Error, "ERROR" }
         };
 
-        private StreamWriter writer;
-        private StringBuilder text;
+        StreamWriter writer;
+        StringBuilder text;
 
         /// <summary>
         /// Gets or creates a Logger instance.
