@@ -20,7 +20,7 @@ Packet::~Packet()
 {
 }
 
-std::vector<uint8_t> Packet::Serialize()
+std::vector<uint8_t> Packet::Serialize() const
 {
     std::vector<uint8_t> data;
     std::vector<uint8_t> payload = this->SerializePayload();
@@ -38,7 +38,7 @@ std::vector<uint8_t> Packet::Serialize()
     return data;
 }
 
-std::vector<uint8_t> Packet::SerializePayload()
+std::vector<uint8_t> Packet::SerializePayload() const
 {
     return std::vector<uint8_t>();
 }

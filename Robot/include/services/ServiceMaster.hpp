@@ -4,6 +4,7 @@
 #include "UdpSocket.hpp"
 #include "Timer.hpp"
 #include "Packet.hpp"
+#include "Serial.hpp"
 #include <vector>
 #include <memory>
 
@@ -16,16 +17,18 @@ namespace LAME
     public:
         ServiceMaster(int port);
         ~ServiceMaster();
-        void AddService(std::shared_ptr<Service> s);
-        void RegisterEndpoint(struct sockaddr *dest);
         void Run();
-        void SendPacket(Packet *pkt);
+        void SendPacket(const Packet& pkt);
+        
 
     private:
+        std::unique_ptr<SerialPort> serialPort;
+
         UdpSocket socket;
-        std::vector<std::shared_ptr<Service>> services;
-        std::chrono::milliseconds timer_interval;
         bool isRunning;
         struct sockaddr *dest;
+
+        struct ServiceMasterImpl;
+        struct ServiceMasterImpl *services;
     };
 }

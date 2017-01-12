@@ -13,7 +13,7 @@ Drive::Drive(std::array<uint8_t, NUMBER_WHEELS> wheel_speeds) : Packet(PacketOpc
     this->wheelSpeeds = wheel_speeds;   
 }
 
-std::vector<uint8_t> Drive::SerializePayload()
+std::vector<uint8_t> Drive::SerializePayload() const
 {
     std::vector<uint8_t> payload;
     payload.insert(payload.end(), this->wheelSpeeds.begin(), this->wheelSpeeds.end());

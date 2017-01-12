@@ -46,12 +46,12 @@ namespace LAME
 
         Packet(PacketOpcode opcode);
         virtual ~Packet();
-        std::vector<uint8_t> Serialize();
+        std::vector<uint8_t> Serialize() const;
         PacketParseStatus Parse(const uint8_t *buffer, int length);
         PacketOpcode GetOpcode() const;
 
     protected:
-        virtual std::vector<uint8_t> SerializePayload();
+        virtual std::vector<uint8_t> SerializePayload() const;
         virtual PacketParseStatus ParsePayload(const uint8_t *payload, int payload_length);
 
         PacketOpcode opcode;

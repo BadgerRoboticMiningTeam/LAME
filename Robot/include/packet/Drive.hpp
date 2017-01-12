@@ -15,7 +15,7 @@ namespace LAME
         void SetWheelSpeeds(std::array<uint8_t, NUMBER_WHEELS> wheel_speeds);
 
     protected:
-        std::vector<uint8_t> SerializePayload();
+        std::vector<uint8_t> SerializePayload() const;
 
     private:
         std::array<uint8_t, NUMBER_WHEELS> wheelSpeeds;
