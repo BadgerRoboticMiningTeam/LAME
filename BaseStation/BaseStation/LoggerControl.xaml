@@ -8,7 +8,7 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <TextBox x:Name="LoggerTextBox" TextWrapping="Wrap" 
             Background="LightGray" IsReadOnly="True" Height="Auto"
-            Text="{Binding Path=Text, Mode=OneWay}"
+            Text="{Binding Path=Text, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
             VerticalScrollBarVisibility="Visible" 
             Margin="5"/>
 </UserControl>
