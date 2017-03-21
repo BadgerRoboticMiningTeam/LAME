@@ -11,7 +11,6 @@ namespace LAME
     class Timer
     {
     public:
-        Timer();
         Timer(const Interval& timer_period, const TimerCallback& timer_callback, bool periodic = false);
         ~Timer();
         void Start();

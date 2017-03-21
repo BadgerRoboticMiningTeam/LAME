@@ -31,16 +31,6 @@ using namespace LAME;
     #error "Not implemented"
 #endif
 
-Timer::Timer()
-{
-    this->period = Interval(0);
-    this->callback = nullptr;
-    this->isPeriodic = false;
-
-    this->impl = new Timer::TimerImpl;
-    if (!this->InitializeImpl())
-        throw std::runtime_error("Failed to initialize timer!");
-}
 
 Timer::Timer(const Interval& timer_period, const TimerCallback& timer_callback, bool periodic)
 {
@@ -102,6 +92,7 @@ bool Timer::IsRunning() const
 
 static void CALLBACK WinTimerCallback(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 {
+    (void) TimerOrWaitFired;
     if (!lpParameter)
         return;
 
@@ -112,6 +103,9 @@ static void CALLBACK WinTimerCallback(PVOID lpParameter, BOOLEAN TimerOrWaitFire
 
 bool Timer::InitializeImpl()
 {
+    impl->timerQueue = INVALID_HANDLE_VALUE;
+    impl->timerQueueTimer = INVALID_HANDLE_VALUE;
+
     impl->timerQueue = CreateTimerQueue();
     return impl->timerQueue != INVALID_HANDLE_VALUE;
 }
@@ -127,7 +121,7 @@ void Timer::CleanupImpl()
 
 void Timer::Start()
 {
-    DWORD period = (this->isPeriodic) ? static_cast<DWORD>(this->GetPeriod().count()) : 0;
+    DWORD actual_period = (this->isPeriodic) ? static_cast<DWORD>(this->GetPeriod().count()) : 0;
 
     BOOL success = CreateTimerQueueTimer(
         &impl->timerQueueTimer,
@@ -135,7 +129,7 @@ void Timer::Start()
         &WinTimerCallback,
         this,
         0,
-        period,
+        actual_period,
         0
     );
 
