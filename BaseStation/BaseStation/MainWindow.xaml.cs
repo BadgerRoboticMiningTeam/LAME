@@ -15,6 +15,7 @@ using Emgu.CV.Structure;
 using System.Timers;
 using System.Windows.Media;
 using System.Windows.Controls;
+using System.ComponentModel;
 
 namespace BaseStation
 {
@@ -23,7 +24,6 @@ namespace BaseStation
         Direct = 1,
         Remote = 2,
         AI = 3,
-        Unknown = -1
     }
 
     /// <summary>
@@ -42,16 +42,21 @@ namespace BaseStation
         Xbox360Service xboxService;
         System.Timers.Timer queryHeartbeatTimer;
         bool isConnected;
+        bool receivedDriveModeAck;
         DriveMode currentDriveMode;
         IPEndPoint robotPacketEndpoint;
         Thread connectionThread;
         Thread joystickReadThread;
         bool windowClosing;
+        DateTime lastHeartbeatReceived;
 
         public MainWindow()
         {
             InitializeComponent();
             logger = Logger.GetInstance();
+
+            lastHeartbeatReceived = DateTime.MinValue;
+            receivedDriveModeAck = false;
 
             xboxService = new Xbox360Service(1);
             bool xbox_init_ok = xboxService.Initialize() && xboxService.Start();
@@ -70,7 +75,7 @@ namespace BaseStation
 
             isConnected = false;
             windowClosing = false;
-            currentDriveMode = DriveMode.Unknown;
+            currentDriveMode = DriveMode.Direct;
 
             connectionThread = new Thread(ConnectingWorker);
 
@@ -93,7 +98,12 @@ namespace BaseStation
             switch (opcode)
             {
                 case PacketOpcode.ReportHeartbeat:
+                    lastHeartbeatReceived = DateTime.Now;
                     logger.Write(LoggerLevel.Info, "ReportHeartbeat received at " + DateTime.Now.ToString("h:mm:ss tt"));
+                    break;
+
+                case PacketOpcode.SwitchDriveModeAck:
+                    receivedDriveModeAck = true;
                     break;
             }
         }
@@ -125,19 +135,61 @@ namespace BaseStation
 
         public void ConnectingWorker()
         {
-            /* make FSM
-            // remember to enable the RequestCameraImage button!
-            bool queryHeartbeatState = true;
-            while (!isConnected)
-            {
-                Thread.Sleep(250);
+            bool queryHeartbeatState = !isConnected; // if not connected, start here
+            bool setDriveModeState = isConnected; // if already connected, start in this state
+            bool done = false;
+            lastHeartbeatReceived = DateTime.MinValue;
+            receivedDriveModeAck = false;
 
-                // done
-                isConnected = true;
-                //currentDriveMode = nextDriveMode;
-                SetRobotConnection(isConnected);
+            while (!done)
+            {
+                if (queryHeartbeatState)
+                {
+                    if (lastHeartbeatReceived != DateTime.MinValue)
+                    {
+                        queryHeartbeatState = false;
+                        setDriveModeState = true;
+                    }
+                    else
+                    {
+                        QueryHeartbeat qhb = new QueryHeartbeat();
+                        byte[] buffer = qhb.Serialize();
+                        packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
+                    }
+                }
+                else if (setDriveModeState)
+                {
+                    byte[] buffer;
+                    switch (currentDriveMode)
+                    {
+                        case DriveMode.Remote:
+                            buffer = new SwitchToRemoteDrive().Serialize();
+                            break;
+                        case DriveMode.AI:
+                            buffer = new SwitchToAIDrive().Serialize();
+                            break;
+                        default:
+                            buffer = new SwitchToDirectDrive().Serialize();
+                            break;
+                    }
+
+                    packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
+                    if (receivedDriveModeAck)
+                    {
+                        isConnected = true;
+                        done = true;
+                        SetRobotConnection(true);
+                        Dispatcher.BeginInvoke(new Action(() => { requestCameraButton.IsEnabled = true; }));
+                    }
+                }
+                else
+                {
+                    logger.Write(LoggerLevel.Error, "Invalid connection state detected. Connection thread exiting.");
+                    return;
+                }
+
+                Thread.Sleep(150);
             }
-            */
         }
 
         void ReadJoystickValues()
@@ -240,7 +292,7 @@ namespace BaseStation
                 return;
             }
 
-            logger.Write(LoggerLevel.Info, "Starting connection sequence with Ascent (" + addr + ") with drive mode: " + currentDriveMode);
+            logger.Write(LoggerLevel.Info, "Starting connection sequence with BLER (" + addr + ") with drive mode: " + currentDriveMode);
             connectionThread.Start();
         }
 
@@ -253,7 +305,7 @@ namespace BaseStation
             // TODO: implement packet
         }
 
-        void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        void WindowClosing(object sender, CancelEventArgs e)
         {
             windowClosing = true;
 

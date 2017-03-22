@@ -113,7 +113,7 @@
                 <!-- "Go" button -->
                 <Border Grid.Row="5" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <Button Background="Green" Foreground="White"
-                            FontSize="24"  x:Name="goButton">
+                            FontSize="24"  x:Name="goButton" Click="GoButtonClicked">
                         Start
                     </Button>
                 </Border>

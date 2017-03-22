@@ -19,7 +19,10 @@ namespace BaseStation.Packet
 
         ReportDriveMode = 0x40,
         ReportLocation = 0x42,
-        ReportHeartbeat = 0x44
+        ReportHeartbeat = 0x44,
+        SwitchToDirectDrive = 0x99,
+        SwitchDriveModeAck = 0x60
+
     }
 
     public enum PacketParseError
@@ -47,7 +50,7 @@ namespace BaseStation.Packet
             if (buffer_header != LAME_HEADER)
                 return false;
 
-            if (buffer[PACKET_HEADER_SIZE + buffer_size] != LAME_END)
+            if (buffer[buffer_size - 1] != LAME_END)
                 return false;
 
             if (!Enum.IsDefined(typeof(PacketOpcode), buffer_opcode))

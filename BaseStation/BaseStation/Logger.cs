@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace BaseStation
 {
-    enum LoggerLevel
+    enum LoggerLevel : int
     {
-        Info,
-        Warning,
-        Error
+        Info = 1,
+        Warning = 2,
+        Error = 3
     }
 
-    class Logger : IDisposable
+    class Logger : IDisposable, INotifyPropertyChanged
     {
         static Logger instance;
         static readonly Dictionary<LoggerLevel, string> levelMap = new Dictionary<LoggerLevel, string> {
@@ -23,6 +25,8 @@ namespace BaseStation
 
         StreamWriter writer;
         StringBuilder text;
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Gets or creates a Logger instance.
@@ -41,13 +45,14 @@ namespace BaseStation
         {
             text = new StringBuilder();
 
-            if (filePath == null)
+            if (filePath != null)
                 writer = new StreamWriter(filePath);
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public void Write(LoggerLevel level, string log_text)
         {
-            string converted_text = string.Format("[{0} | {1}] {2}\n", DateTime.Now.ToString("HH:mm:ss") , levelMap[level], log_text);
+            string converted_text = string.Format("[{0} | {1}] {2}\n", DateTime.Now.ToString("HH:mm:ss"), levelMap[level], log_text);
             text.Append(converted_text);
 
             if (writer != null)
@@ -55,11 +60,18 @@ namespace BaseStation
                 writer.Write(converted_text);
                 writer.Flush();
             }
+
+            OnPropertyChanged("LoggerUpdate");
         }
 
         public string Text
-        { 
+        {
             get { return text.ToString(); }
+        }
+
+        protected void OnPropertyChanged(string name)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
         #region IDisposable Support

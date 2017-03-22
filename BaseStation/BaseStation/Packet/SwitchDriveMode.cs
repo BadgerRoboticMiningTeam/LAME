@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace BaseStation.Packet
 {
     public class SwitchToAIDrive : NoPayloadPacket
@@ -14,6 +16,22 @@ namespace BaseStation.Packet
         public override PacketOpcode Opcode
         {
             get { return PacketOpcode.SwitchToRemoteDrive; }
+        }
+    }
+
+    public class SwitchToDirectDrive : NoPayloadPacket
+    {
+        public override PacketOpcode Opcode
+        {
+            get { return PacketOpcode.SwitchToDirectDrive; }
+        }
+    }
+
+    public class SwitchDriveModeAck : NoPayloadPacket
+    {
+        public override PacketOpcode Opcode
+        {
+            get { return PacketOpcode.SwitchDriveModeAck; }
         }
     }
 }
