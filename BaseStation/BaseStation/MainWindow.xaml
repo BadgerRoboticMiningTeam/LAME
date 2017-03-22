@@ -101,7 +101,7 @@
 
                 <!-- request camera image block -->
                 <Border Grid.Row="3" BorderBrush="Black" BorderThickness="0 0 0 1">
-                    <Button x:Name="requestCameraButton" IsEnabled="False" FontSize="16">
+                    <Button x:Name="requestCameraButton" IsEnabled="False" FontSize="16" Click="RequestImageClicked">
                         Request Camera Image
                     </Button>
                 </Border>
@@ -171,6 +171,59 @@
 
             <!-- Metrics -->
             <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1 1 0 0 ">
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="4*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0"
+                                FontWeight="Bold" FontSize="20"
+                                HorizontalContentAlignment="Center">
+                        ID:
+                    </Label>
+
+                    <TextBox Grid.Column="1"
+                                IsEnabled="False" HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center" FontSize="20"
+                                x:Name="jsIdTextBox">
+                        N/A
+                    </TextBox>
+
+                    <Label Grid.Column="2"
+                                FontWeight="Bold" FontSize="20"
+                                HorizontalContentAlignment="Center">
+                        LY:
+                    </Label>
+
+                    <TextBox Grid.Column="3"
+                                IsEnabled="False" HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center" FontSize="20"
+                                x:Name="leftYTextBox">
+                        0
+                    </TextBox>
+
+                    <Label Grid.Column="4"
+                                FontWeight="Bold" FontSize="20"
+                                HorizontalContentAlignment="Center">
+                        RY:
+                    </Label>
+
+                    <TextBox Grid.Column="5"
+                                IsEnabled="False" HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center" FontSize="20"
+                                x:Name="rightYTextBox">
+                        0
+                    </TextBox>
+                </Grid>
             </Border>
         </Grid>
     </Grid>
