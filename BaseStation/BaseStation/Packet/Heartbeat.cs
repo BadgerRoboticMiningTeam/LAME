@@ -1,7 +1,7 @@
 ﻿
 namespace BaseStation.Packet
 {
-    public class QueryHearbeat : NoPayloadPacket
+    public class QueryHeartbeat : NoPayloadPacket
     {
         public override PacketOpcode Opcode
         {

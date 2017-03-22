@@ -13,13 +13,11 @@ namespace BaseStation.Packet
         ClearEStop = 0x04,
 
         QueryDriveMode = 0x10,
-        QueryBinWeight = 0x11,
         QueryLocation = 0x12,
         QueryCameraImage = 0x13,
         QueryHeartbeat = 0x14,
 
         ReportDriveMode = 0x40,
-        ReportBinWeight = 0x41,
         ReportLocation = 0x42,
         ReportHeartbeat = 0x44
     }
@@ -32,19 +30,19 @@ namespace BaseStation.Packet
 
     public abstract class Packet
     {
-        const ushort LAME_HEADER = 0xBEEF;
+        const byte LAME_HEADER = 0xAB;
         const byte LAME_END = 0x7F;
-        const byte PACKET_HEADER_SIZE = sizeof(ushort) + 3 * sizeof(byte);   // header, opcode, payload size, payload crc
-        const byte PACKET_METADATA_SIZE = PACKET_HEADER_SIZE + sizeof(byte); // header size + end byte
+        const byte PACKET_HEADER_SIZE = 3;   // header, opcode, payload size,
+        const byte PACKET_METADATA_SIZE = 4; // header size + end byte
 
         public static bool GetOpcodeFromBuffer(byte[] buffer, ref PacketOpcode op)
         {
             if (buffer == null || buffer.Length < PACKET_METADATA_SIZE)
                 return false;
 
-            ushort buffer_header = (ushort)(buffer[0] << 8 | buffer[1]);
-            byte buffer_opcode = buffer[2];
-            byte buffer_size = buffer[3];
+            byte buffer_header = buffer[0];
+            byte buffer_opcode = buffer[1];
+            byte buffer_size = buffer[2];
 
             if (buffer_header != LAME_HEADER)
                 return false;
@@ -69,14 +67,11 @@ namespace BaseStation.Packet
             byte[] payload = SerializePayload();
             byte[] buffer = new byte[PACKET_METADATA_SIZE + payload.Length];
 
-            buffer[0] = LAME_HEADER >> 8;
-            buffer[1] = LAME_HEADER & 0xFF;
-            buffer[2] = (byte) Opcode;
-            buffer[3] = (byte) payload.Length;
-            buffer[4] = Util.ComputeCRC(payload);
+            buffer[0] = LAME_HEADER;
+            buffer[1] = (byte) Opcode;
+            buffer[2] = (byte) payload.Length;
             Array.Copy(payload, 0, buffer, PACKET_HEADER_SIZE, payload.Length);
             buffer[buffer.Length - 1] = LAME_END;
-
             return buffer;
         }
 
@@ -85,27 +80,21 @@ namespace BaseStation.Packet
             if (buffer == null || buffer.Length < PACKET_METADATA_SIZE)
                 return PacketParseError.BadBuffer;
 
-            ushort buffer_header = (ushort) (buffer[0] << 8 | buffer[1]);
-            byte buffer_opcode = buffer[2];
-            byte buffer_size = buffer[3];
-            byte buffer_crc = buffer[4];
+            byte buffer_header = buffer[0];
+            byte buffer_opcode = buffer[1];
+            byte buffer_size = buffer[2];
 
             byte[] payload = new byte[buffer_size];
             Array.Copy(buffer, PACKET_HEADER_SIZE, payload, 0, buffer_size);
-
-            byte computed_crc = Util.ComputeCRC(payload);
-
+            
             if (buffer_header != LAME_HEADER)
                 return PacketParseError.BadHeader;
 
-            if (buffer[2] != (byte) Opcode)
+            if (buffer[1] != (byte) Opcode)
                 return PacketParseError.BadOpcode;
 
             if (buffer[PACKET_HEADER_SIZE + buffer_size] != LAME_END)
                 return PacketParseError.BadEndByte;
-
-            if (computed_crc != buffer_crc)
-                return PacketParseError.BadCRC;
 
             return DeserializePayload(payload);
         }
