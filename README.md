@@ -11,9 +11,9 @@ a small thing like buffer packing.
 #### Packet Structure
 The robot and base station communicate via packets. The structure is given below. 
 
-| Byte Index  |     0 - 1     |       2     |       3       |      4      |  5 ... n - 1  |      n       |
+| Byte Index  |     0     |       1     |       2       |  3 ... n - 1  |      n       |
 | ----------- | ------------- | ----------- | ------------- | ----------- | ------------- | ------------ |
-| Description | Header (0xBEEF) | Opcode | Payload size | Payload CRC | Payload | End bytes (0x7F) |
+| Description | Header | Opcode | Payload size | Payload | End bytes (0x7F) |
 
 #### Services
 Services are independent pieces of code that, at runtime, can be selected to run, either at regular intervals or when a packet is received.

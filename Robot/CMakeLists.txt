@@ -21,9 +21,9 @@ endif ()
 link_directories(.)
 
 # include directories
-include_directories(../JoystickLibrary/cpp/include include include/packet include/services include/util)
+include_directories(${CMAKE_SOURCE_DIR}/../JoystickLibrary/cpp/include include)
 
-file(GLOB ROBOT_SRC src/**/*.c src/**/*.cpp src/*.cpp include/**/*.hpp)
+file(GLOB ROBOT_SRC src/*.cpp src/*.c include/*.hpp include/*.h)
 
 add_executable(${PROJECT_NAME} ${ROBOT_SRC})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} JoystickLibrary)
