@@ -28,7 +28,9 @@ extern "C" {
 #define QUERY_HEARTBEAT_OPCODE				0x14
 #define REPORT_DRIVE_MODE_OPCODE			0x40
 #define REPORT_LOCATION_OPCODE				0x42
-#define REPORT_HEARTBEAT_OPCODE				0x43
+#define REPORT_HEARTBEAT_OPCODE				0x44
+#define SWITCH_MODE_OPCODE                  0x60
+
 
 // payload structs //
 struct DrivePayload
@@ -69,8 +71,8 @@ static int CreateNoPayloadPacket(uint8_t *buffer, uint8_t length, uint8_t opcode
 {
 	if (length < PKT_MIN_SIZE)
 		return 0;
-	buffer[PKT_HDR_INDEX] = PKT_HDR_INDEX;
-	buffer[PKT_OP_INDEX] = PKT_OP_INDEX;
+	buffer[PKT_HDR_INDEX] = PKT_HEADER;
+	buffer[PKT_OP_INDEX] = opcode;
 	buffer[PKT_SIZE_INDEX] = PKT_MIN_SIZE;
 	buffer[PKT_PAYLOAD_START_INDEX] = PKT_END;
 	return PKT_MIN_SIZE;
@@ -84,6 +86,11 @@ static int CreateQueryHeartbeatPacket(uint8_t *buffer, uint8_t length)
 static int CreateReportHeartbeatPacket(uint8_t *buffer, uint8_t length)
 {
 	return CreateNoPayloadPacket(buffer, length, REPORT_HEARTBEAT_OPCODE);
+}
+
+static int CreateSwitchModeAckPacket(uint8_t *buffer, uint8_t length)
+{
+    return CreateNoPayloadPacket(buffer, length, SWITCH_MODE_OPCODE);
 }
 
 static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayload payload)

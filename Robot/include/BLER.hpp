@@ -35,7 +35,7 @@ namespace LAME
         void Execute();
 
         bool isRunning;
-		std::unique_ptr<struct sockaddr_in> baseStationAddr;
+		struct sockaddr_in baseStationAddr;
         struct sockaddr_in aiAddr;
         DriveMode currentMode;
 

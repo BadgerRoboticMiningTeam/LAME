@@ -1,6 +1,8 @@
 #include "BLER.hpp"
 #include "Packet.h"
 #include <cstdint>
+#include <iostream>
+#include <cstdio>
 
 using namespace LAME;
 
@@ -9,7 +11,8 @@ constexpr int READ_BUFFER_SIZE = 64;
 
 BLER::BLER(int base_port, int ai_port, std::string& serial_port) : 
 	socket(new UdpSocket(base_port)),
-	serialPort(new SerialPort(serial_port, 115200))
+	serialPort(new SerialPort(serial_port, 115200)),
+    js(new JoystickLibrary::Xbox360Service(1))
 {
     // init serial port //
 	serialPort->Open();
@@ -53,6 +56,11 @@ void BLER::SendPacketUdp(const uint8_t *buffer, int length, struct sockaddr *add
 	if (addr == nullptr)
 		return;
 
+    printf("buffer: ");
+    for (int i = 0; i < length; i++)
+        printf(" %x ", buffer[i]);
+    printf("\n");    
+
     this->socket->Write(buffer, length, addr);
 }
 
@@ -92,6 +100,11 @@ void BLER::ReceivePacketsFromUdp()
 						  addr.sin_addr.s_addr == htonl(INADDR_LOOPBACK) && 
 						  addr.sin_port == this->aiAddr.sin_port;
 
+        if (!is_from_ai)
+        {
+            baseStationAddr = addr;
+        }
+
 		// parse packets //
 		uint8_t opcode = 0;
 		uint8_t *payload = nullptr;
@@ -99,23 +112,36 @@ void BLER::ReceivePacketsFromUdp()
 			continue;
 
 		switch (opcode)
-		{
+	    {
 			case QUERY_HEARTBEAT_OPCODE:
 			{
 				uint8_t pkt[16];
 				int bytes_written = CreateReportHeartbeatPacket(pkt, 16);
-				this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) this->baseStationAddr.get());
+                std::cout << "Sent ReportHeartbeat" << std::endl;
+				this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
 				break;
 			}
 
 			case AI_SWITCH_OPCODE:
+            {
+                uint8_t pkt[16];
 				this->currentMode = DriveMode::AI;
+                int bytes_written = CreateSwitchModeAckPacket(pkt, 16);
+                this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
+                std::cout << "Switched to AI mode" << std::endl;
 				break;
+            }
 
 			case REMOTE_SWITCH_OPCODE:
+            {
+                uint8_t pkt[16];
 				lastDrivePayloadReceivedTime = time(nullptr);
 				this->currentMode = DriveMode::Remote;
+                int bytes_written = CreateSwitchModeAckPacket(pkt, 16);
+                this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
+                std::cout << "Switched to Remote mode" << std::endl;
 				break;
+            }
 
 			case DIRECT_SWITCH_OPCODE:
 				this->currentMode = DriveMode::Direct;
@@ -187,12 +213,14 @@ void BLER::Execute()
 
 bool BLER::Run()
 {
-    if (!socket->Open() || !socket->Open() || !serialPort->Open())
+    if (!socket->Open()) //|| !serialPort->Open())
         return false;
 
     // initialize joystick //
 	if (!js->Initialize() && js->Start())
 		return false;
+
+    this->isRunning = true;
 
     // spin off threads //
 	serialReadThread = std::thread(&BLER::ReceivePacketsFromSerial, this);
