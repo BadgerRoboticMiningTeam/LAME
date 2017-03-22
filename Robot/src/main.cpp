@@ -8,7 +8,7 @@ using namespace LAME;
 
 int main(int argc, char **argv)
 {
-	char *serial_port = nullptr;
+    std::string serial_port = "";
 	int port = 10000;
 	int ai_remote_port = 11000;
 
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 			if (i + 1 > argc)
 				break;
 
-			serial_port = argv[i + 1];
+			serial_port = std::string(argv[i + 1]);
 			i++;
 		}
 		else if (strcmp("-ai", argv[i]) == 0)
@@ -41,13 +41,13 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (serial_port == nullptr)
+	if (serial_port == "")
 	{
 		std::cout << "Serial port not specified!" << std::endl;
 		return 1;
 	}
 
-	std::unique_ptr<BLER> bler(new BLER(port, ai_remote_port, std::string(serial_port)));
+	std::unique_ptr<BLER> bler(new BLER(port, ai_remote_port, serial_port));
 	if (!bler->Run())
 	{
 		std::cout << "Failed to start!" << std::endl;
