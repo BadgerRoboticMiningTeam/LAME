@@ -105,8 +105,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Packet\Drive.cs" />
+    <Compile Include="Packet\Encoder.cs" />
     <Compile Include="Packet\EStop.cs" />
     <Compile Include="Packet\Heartbeat.cs" />
+    <Compile Include="Packet\Location.cs" />
     <Compile Include="Packet\Packet.cs" />
     <Compile Include="Packet\SwitchDriveMode.cs" />
     <Compile Include="Util.cs" />

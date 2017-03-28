@@ -5,24 +5,27 @@ namespace BaseStation.Packet
 {
     public enum PacketOpcode : byte
     {
-        Drive = 0x90,
+        Drive = 0x99,
+        SwitchToDirectDrive = 0x90,
+        SwitchToRemoteDrive = 0x91,
+        SwitchToAIDrive = 0x92,
+        SwitchDriveModeAck = 0x93,
 
-        SwitchToAIDrive = 0x01,
-        SwitchToRemoteDrive = 0x02,
-        EStop = 0x03,
-        ClearEStop = 0x04,
+        EStop = 0xAA,
+        ClearEStop = 0xAB,
+        
+        AI_Init = 0x02,
+        QueryLocation = 0x44,
+        ReportLocation = 0x45,
+        SetLocation = 0x46,
 
-        QueryDriveMode = 0x10,
-        QueryLocation = 0x12,
-        QueryCameraImage = 0x13,
+        QueryEncoder = 0x50,
+        ReportEncoder = 0x47,
+
         QueryHeartbeat = 0x14,
-
-        ReportDriveMode = 0x40,
-        ReportLocation = 0x42,
         ReportHeartbeat = 0x44,
-        SwitchToDirectDrive = 0x99,
-        SwitchDriveModeAck = 0x60
 
+        QueryCameraImage = 0x13
     }
 
     public enum PacketParseError
@@ -45,12 +48,12 @@ namespace BaseStation.Packet
 
             byte buffer_header = buffer[0];
             byte buffer_opcode = buffer[1];
-            byte buffer_size = buffer[2];
+            byte payload_size = buffer[2];
 
             if (buffer_header != LAME_HEADER)
                 return false;
 
-            if (buffer[buffer_size - 1] != LAME_END)
+            if (buffer[PACKET_HEADER_SIZE + payload_size - 1] != LAME_END)
                 return false;
 
             if (!Enum.IsDefined(typeof(PacketOpcode), buffer_opcode))
@@ -85,10 +88,10 @@ namespace BaseStation.Packet
 
             byte buffer_header = buffer[0];
             byte buffer_opcode = buffer[1];
-            byte buffer_size = buffer[2];
+            byte payload_size = buffer[2];
 
-            byte[] payload = new byte[buffer_size];
-            Array.Copy(buffer, PACKET_HEADER_SIZE, payload, 0, buffer_size);
+            byte[] payload = new byte[payload_size];
+            Array.Copy(buffer, PACKET_HEADER_SIZE, payload, 0, payload_size);
             
             if (buffer_header != LAME_HEADER)
                 return PacketParseError.BadHeader;
@@ -96,7 +99,7 @@ namespace BaseStation.Packet
             if (buffer[1] != (byte) Opcode)
                 return PacketParseError.BadOpcode;
 
-            if (buffer[PACKET_HEADER_SIZE + buffer_size] != LAME_END)
+            if (buffer[PACKET_HEADER_SIZE + payload_size] != LAME_END)
                 return PacketParseError.BadEndByte;
 
             return DeserializePayload(payload);

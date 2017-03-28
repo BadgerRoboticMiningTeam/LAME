@@ -7,6 +7,7 @@
 using namespace LAME;
 
 constexpr int READ_BUFFER_SIZE = 64;
+constexpr int AI_TIMEOUT_INTERVAL = 5; // AI dead timeout 
 
 
 BLER::BLER(int base_port, int ai_port, std::string& serial_port) : 
@@ -17,11 +18,16 @@ BLER::BLER(int base_port, int ai_port, std::string& serial_port) :
     // init serial port //
 	serialPort->Open();
 
-	// TODO: init aiAddr //
+    std::memset(&this->aiAddr, 0, sizeof(struct sockaddr_in));
+    this->aiAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    this->aiAddr.sin_family = AF_INET;
+    this->aiAddr.sin_port = htons(ai_port);
 
 	// init other fields //
 	this->lastDrivePayloadReceivedTime = time(nullptr);
+    this->lastAIHeartbeatReceivedTime = time(nullptr);
     this->isRunning = false;
+    this->aiConnected = false;
     this->currentMode = DriveMode::Direct;
 	memset(&latestDrivePayload, 0, sizeof(DrivePayload));
 }
@@ -36,6 +42,9 @@ BLER::~BLER()
 	js->Stop();
 
     // join on all threads
+    if (aiHeartbeatThread.joinable())
+        aiHeartbeatThread.join();
+
 	if (serialReadThread.joinable())
 		serialReadThread.join();
 
@@ -119,6 +128,13 @@ void BLER::ReceivePacketsFromUdp()
 				int bytes_written = CreateReportHeartbeatPacket(pkt, 16);
                 std::cout << "Sent ReportHeartbeat" << std::endl;
 				this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
+
+                if (is_from_ai)
+                {
+                    if (!aiConnected)
+                        aiConnected = true;
+                    this->lastAIHeartbeatReceivedTime = time(nullptr);
+                }
 				break;
 			}
 
@@ -129,6 +145,18 @@ void BLER::ReceivePacketsFromUdp()
                 int bytes_written = CreateSwitchModeAckPacket(pkt, 16);
                 this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
                 std::cout << "Switched to AI mode" << std::endl;
+
+                if (!aiConnected)
+                {
+                    std::cout << "AI is not connected!" << std::endl;
+                }
+                else
+                {
+                    // begin mining cycle
+                    memset(pkt, 0, 16);
+                    bytes_written = CreateAiInitPacket(pkt, 16);
+                    this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
+                }
 				break;
             }
 
@@ -192,7 +220,6 @@ void BLER::Execute()
 			}
 
             case DriveMode::Remote:
-			case DriveMode::AI:
 			{
 				DrivePayload localPayload = this->latestDrivePayload;
 
@@ -207,9 +234,40 @@ void BLER::Execute()
 				this->SendPacketSerial(buffer, bytes_written);
 				break;
 			}
+
+            case DriveMode::AI:
+                // TODO:
+                break;
         }
     }
 } 
+
+void BLER::QueryHeartbeatAI()
+{
+    uint8_t queryBuffer[16];
+    uint8_t remoteBuffer[16];
+
+    memset(queryBuffer, 0, 16);
+    memset(remoteBuffer, 0, 16);
+
+    int queryHeartbeatWritten = CreateQueryHeartbeatPacket(queryBuffer, 16);
+    int remoteWritten = CreateRemoteSwitchPacket(remoteBuffer, 16);
+
+    while (this->isRunning)
+    {
+        // AI is probably dead, revert to remote control
+        if (difftime(time(nullptr), this->lastAIHeartbeatReceivedTime) > AI_TIMEOUT_INTERVAL)
+        {
+            this->currentMode = DriveMode::Remote;
+
+            // notify base station
+            this->SendPacketUdp(remoteBuffer, remoteWritten, (struct sockaddr *) &this->baseStationAddr);
+        }
+
+        this->SendPacketUdp(queryBuffer, queryHeartbeatWritten, (struct sockaddr *) &this->aiAddr);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
 
 bool BLER::Run()
 {
@@ -226,6 +284,7 @@ bool BLER::Run()
 	serialReadThread = std::thread(&BLER::ReceivePacketsFromSerial, this);
 	udpReadThread = std::thread(&BLER::ReceivePacketsFromUdp, this);
 	executeThread = std::thread(&BLER::Execute, this);
+    aiHeartbeatThread = std::thread(&BLER::QueryHeartbeatAI, this);
 
     // init successful //
     return true;

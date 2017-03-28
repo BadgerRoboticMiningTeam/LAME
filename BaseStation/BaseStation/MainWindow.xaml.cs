@@ -33,7 +33,7 @@ namespace BaseStation
     {
         const int PKT_PORT = 10000;
         const int IMG_PORT = 11000;
-        const double QUERY_HEARTBEAT_INTERVAL = 10e3;
+        const double QUERY_HEARTBEAT_INTERVAL = 1e3;
         const int JS_DEADZONE = 15;
 
         Logger logger;
@@ -100,6 +100,22 @@ namespace BaseStation
                 case PacketOpcode.ReportHeartbeat:
                     lastHeartbeatReceived = DateTime.Now;
                     logger.Write(LoggerLevel.Info, "ReportHeartbeat received at " + DateTime.Now.ToString("h:mm:ss tt"));
+                    break;
+
+                case PacketOpcode.SwitchToRemoteDrive:
+                    currentDriveMode = DriveMode.Remote;
+                    for (int i = 0; i < robotModeListBox.Items.Count; i++)
+                    {
+                        var boxItem = robotModeListBox.Items[i] as ComboBoxItem;
+                        var item = boxItem.Content as string;
+                        if (item == "Remote Drive")
+                        {
+                            robotModeListBox.SelectedIndex = i;
+                            break;
+                        }
+                    }
+
+                    logger.Write(LoggerLevel.Warning, "LAME detected AI timeout and has reverted to manual control.");
                     break;
 
                 case PacketOpcode.SwitchDriveModeAck:

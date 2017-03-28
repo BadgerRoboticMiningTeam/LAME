@@ -33,8 +33,10 @@ namespace LAME
         void ReceivePacketsFromSerial();
         void ReceivePacketsFromUdp();
         void Execute();
+        void QueryHeartbeatAI();
 
         bool isRunning;
+        bool aiConnected;
 		struct sockaddr_in baseStationAddr;
         struct sockaddr_in aiAddr;
         DriveMode currentMode;
@@ -46,9 +48,12 @@ namespace LAME
         std::thread serialReadThread;
         std::thread udpReadThread;
         std::thread executeThread;
+        std::thread aiHeartbeatThread;
 
 		// packet payload structs //
 		DrivePayload latestDrivePayload;
 		time_t lastDrivePayloadReceivedTime;
+
+        time_t lastAIHeartbeatReceivedTime;
     };
 }
