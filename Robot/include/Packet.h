@@ -88,18 +88,24 @@ static int encodeCOBS(uint8_t *buffer, uint8_t length) {
 	return length + 2;
 }
 
-static void decodeCOBS(uint8_t *buffer, uint8_t length) {
+static int decodeCOBS(uint8_t *buffer, uint8_t length) {
 	uint8_t i;
-	uint8_t j;
 	uint8_t sec_end;
 	
 	sec_end = buffer[0];
-	for (i=0; i<length; i++) {
+	for (i=0; i<length-2; i++) {
 		if (i < sec_end-1) {
 			buffer[i] = buffer[i+1];
+			if (buffer[i] == 0x00) {
+				return i;
+			}
 		} else {
 			buffer[i] = 0x00;
-			sec_end += buffer[j];
+			if (buffer[i+1] != 0x00) {
+				sec_end += buffer[i+1];
+			} else {
+				return i;
+			}
 		}
 	}
 }
@@ -114,7 +120,7 @@ static int ReadPacketHeader(uint8_t *buffer, uint8_t length, uint8_t *opcode, ui
 	if (!buffer || length < PKT_MIN_SIZE)
 		return 0;
 
-	decodeCOBS(buffer, length);
+	length = decodeCOBS(buffer, length);
 	
 	if (buffer[PKT_HDR_INDEX] != PKT_HEADER_BYTE)
 		return 0;
@@ -127,20 +133,20 @@ static int ReadPacketHeader(uint8_t *buffer, uint8_t length, uint8_t *opcode, ui
 
 	if (payload_ptr)
 		*payload_ptr = (length == PKT_MIN_SIZE) ? 0 : buffer + PKT_PAYLOAD_START_INDEX;
-	return 1;
+	return length;
 }
 
 // serialize functions //
 static int CreateNoPayloadPacket(uint8_t *buffer, uint8_t length, uint8_t opcode)
 {
-	if (length < PKT_MIN_SIZE)
+	if (length < PKT_MIN_SIZE + 2)
 		return 0;
 	buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
 	buffer[PKT_OP_INDEX] = opcode;
 	buffer[PKT_PAYLOAD_SIZE_INDEX] = 0;
 	buffer[PKT_PAYLOAD_START_INDEX] = PKT_END_BYTE;
 	
-	return encodeCOBS(buffer, length);
+	return encodeCOBS(buffer, PKT_MIN_SIZE);
 }
 
 static int CreateQueryHeartbeatPacket(uint8_t *buffer, uint8_t length)
@@ -194,12 +200,12 @@ static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayloa
 	buffer[PKT_PAYLOAD_START_INDEX + 1] = payload.right;
 	buffer[PKT_PAYLOAD_START_INDEX + 2] = PKT_END_BYTE;
 	
-	return encodeCOBS(buffer, length);
+	return encodeCOBS(buffer, PKT_MIN_SIZE + 2);
 }
 
 static int CreateReportLocationPacket(uint8_t *buffer, uint8_t length, struct LocationPayload payload)
 {
-    if (length < PKT_MIN_SIZE + 3 * sizeof(int16_t))
+    if (length < PKT_MIN_SIZE + 3 * sizeof(int16_t) + 2)
         return 0;
 
     __CLAMP(payload.heading, 180, -180);
@@ -224,7 +230,7 @@ static int CreateSetLocationPacket(uint8_t *buffer, uint8_t length, struct Locat
 
 static int CreateReportEncoderPacket(uint8_t *buffer, uint8_t length, struct EncoderPayload payload)
 {
-    if (length < PKT_MIN_SIZE + 6 * sizeof(int16_t))
+    if (length < PKT_MIN_SIZE + 6 * sizeof(int16_t) + 2)
         return 0;
 
     buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
