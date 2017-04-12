@@ -214,7 +214,7 @@ static int CreateReportLocationPacket(uint8_t *buffer, uint8_t length, struct Lo
     buffer[PKT_PAYLOAD_START_INDEX + 4] = payload.heading >> 8;
     buffer[PKT_PAYLOAD_START_INDEX + 5] = payload.heading & 0xFF;
 	
-    return encodeCOBS(buffer, PKT_MIN_SIZE + 3 * sizeof(int16_t);
+    return encodeCOBS(buffer, PKT_MIN_SIZE + 3 * sizeof(int16_t));
 }
 
 static int CreateSetLocationPacket(uint8_t *buffer, uint8_t length, struct LocationPayload payload)
@@ -248,7 +248,7 @@ static int CreateReportEncoderPacket(uint8_t *buffer, uint8_t length, struct Enc
     buffer[PKT_PAYLOAD_START_INDEX + 10] = payload.right_actuator >> 8;
     buffer[PKT_PAYLOAD_START_INDEX + 11] = payload.right_actuator & 0xFF;
 
-    return encodeCOBS(buffer, PKT_MIN_SIZE + 6 * sizeof(int16_t);
+    return encodeCOBS(buffer, PKT_MIN_SIZE + 6 * sizeof(int16_t));
 }
 
 // deserialize functions - only for packets that have payloads //
