@@ -104,13 +104,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Packet\Drive.cs" />
-    <Compile Include="Packet\Encoder.cs" />
-    <Compile Include="Packet\EStop.cs" />
-    <Compile Include="Packet\Heartbeat.cs" />
-    <Compile Include="Packet\Location.cs" />
-    <Compile Include="Packet\Packet.cs" />
-    <Compile Include="Packet\SwitchDriveMode.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -143,7 +136,12 @@
   <ItemGroup>
     <Resource Include="arena.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\BaseStationPacket\BaseStationPacket.vcxproj">
+      <Project>{b0522b60-051e-4777-b00e-c7aaf4d9540e}</Project>
+      <Name>BaseStationPacket</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

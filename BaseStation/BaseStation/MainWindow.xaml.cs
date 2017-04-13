@@ -49,12 +49,14 @@ namespace BaseStation
         Thread joystickReadThread;
         bool windowClosing;
         DateTime lastHeartbeatReceived;
+        PacketHandler handler;
 
         public MainWindow()
         {
             InitializeComponent();
             logger = Logger.GetInstance();
 
+            handler = new PacketHandler();
             lastHeartbeatReceived = DateTime.MinValue;
             receivedDriveModeAck = false;
 
@@ -91,18 +93,16 @@ namespace BaseStation
             byte[] buffer = packetSocket.EndReceive(ar, ref endpoint);
             packetSocket.BeginReceive(PacketReceiveCallback, null);
 
-            PacketOpcode opcode = PacketOpcode.Drive;
-            if (!Packet.Packet.GetOpcodeFromBuffer(buffer, ref opcode))
-                return;
+            Opcode opcode = handler.GetPacketOpcode(buffer, buffer.Length);
 
             switch (opcode)
             {
-                case PacketOpcode.ReportHeartbeat:
+                case Opcode.REPORT_HEARTBEAT:
                     lastHeartbeatReceived = DateTime.Now;
                     logger.Write(LoggerLevel.Info, "ReportHeartbeat received at " + DateTime.Now.ToString("h:mm:ss tt"));
                     break;
 
-                case PacketOpcode.SwitchToRemoteDrive:
+                case Opcode.REMOTE_SWITCH:
                     currentDriveMode = DriveMode.Remote;
                     for (int i = 0; i < robotModeListBox.Items.Count; i++)
                     {
@@ -118,9 +118,12 @@ namespace BaseStation
                     logger.Write(LoggerLevel.Warning, "LAME detected AI timeout and has reverted to manual control.");
                     break;
 
-                case PacketOpcode.SwitchDriveModeAck:
+                case Opcode.SWITCH_MODE_ACK:
                     receivedDriveModeAck = true;
                     break;
+
+                default:
+                    return;
             }
         }
 
@@ -144,8 +147,7 @@ namespace BaseStation
             if (!isConnected || robotPacketEndpoint == null)
                 return;
 
-            QueryHeartbeat qhb = new QueryHeartbeat();
-            byte[] buffer = qhb.Serialize();
+            byte[] buffer = handler.GetQueryHeartbeatPacket();
             packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
         }
 
@@ -168,8 +170,7 @@ namespace BaseStation
                     }
                     else
                     {
-                        QueryHeartbeat qhb = new QueryHeartbeat();
-                        byte[] buffer = qhb.Serialize();
+                        byte[] buffer = handler.GetQueryHeartbeatPacket();
                         packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
                     }
                 }
@@ -179,13 +180,13 @@ namespace BaseStation
                     switch (currentDriveMode)
                     {
                         case DriveMode.Remote:
-                            buffer = new SwitchToRemoteDrive().Serialize();
+                            buffer = handler.GetRemoteSwitchPacket();
                             break;
                         case DriveMode.AI:
-                            buffer = new SwitchToAIDrive().Serialize();
+                            buffer = handler.GetAiInitPacket();
                             break;
                         default:
-                            buffer = new SwitchToDirectDrive().Serialize();
+                            buffer = new byte[0];
                             break;
                     }
 
@@ -265,8 +266,10 @@ namespace BaseStation
                     if (!isConnected || currentDriveMode != DriveMode.Remote)
                         continue;
 
-                    Drive speeds = new Drive(leftY, rightY);
-                    byte[] buffer = speeds.Serialize();
+                    Drive speeds = new Drive();
+                    speeds.left = leftY;
+                    speeds.right = rightY;
+                    byte[] buffer = handler.GetDrivePacket(speeds);
                     packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
                 }
             }

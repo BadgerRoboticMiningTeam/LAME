@@ -3,7 +3,7 @@ project(LAME)
 
 # external dependencies
 find_package(Threads REQUIRED)
-find_package(OpenCV REQUIRED)
+#find_package(OpenCV REQUIRED)
 
 # C++11 required
 set (CMAKE_CXX_STANDARD 11)

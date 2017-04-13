@@ -6,7 +6,9 @@
 #include "Packet.h"
 #include "Serial.hpp"
 #include "UdpSocket.hpp"
-#include "joystick.h"
+#include <Xbox360Service.hpp>
+
+using JoystickLibrary::Xbox360Service;
 
 
 namespace LAME
@@ -43,7 +45,7 @@ namespace LAME
 
         std::unique_ptr<SerialPort> serialPort;
         std::unique_ptr<UdpSocket> socket;
-        std::unique_ptr<JoystickLibrary::Xbox360Service> js;
+        Xbox360Service& js = Xbox360Service::GetInstance();
 
         std::thread serialReadThread;
         std::thread udpReadThread;

@@ -12,8 +12,7 @@ constexpr int AI_TIMEOUT_INTERVAL = 5; // AI dead timeout
 
 BLER::BLER(int base_port, int ai_port, std::string& serial_port) : 
 	socket(new UdpSocket(base_port)),
-	serialPort(new SerialPort(serial_port, 115200)),
-    js(new JoystickLibrary::Xbox360Service(1))
+	serialPort(new SerialPort(serial_port, 115200))
 {
     // init serial port //
 	serialPort->Open();
@@ -39,7 +38,6 @@ BLER::~BLER()
 	// close serialport, udpsocket
 	serialPort->Close();
 	socket->Close();
-	js->Stop();
 
     // join on all threads
     if (aiHeartbeatThread.joinable())
@@ -207,13 +205,13 @@ void BLER::Execute()
 				DrivePayload payload;
 				int left, right;
 
-				js->GetJoystickIDs(jsIDs);
+				jsIDs = js.GetIDs();
 				if (jsIDs.size() < 1)
 					continue;
 
 				int js_id = jsIDs[0];
-				payload.left = js->GetLeftY(js_id, left) ? left : 0;
-				payload.right = js->GetRightY(js_id, right) ? right : 0;
+				payload.left = js.GetLeftY(js_id, left) ? left : 0;
+				payload.right = js.GetRightY(js_id, right) ? right : 0;
 				int bytes_written = CreateDrivePacket(buffer, 64, payload);
 				this->SendPacketSerial(buffer, bytes_written);
 				break;
@@ -275,7 +273,7 @@ bool BLER::Run()
         return false;
 
     // initialize joystick //
-	if (!js->Initialize() && js->Start())
+	if (!js.Initialize())
 		return false;
 
     this->isRunning = true;

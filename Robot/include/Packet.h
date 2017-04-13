@@ -67,16 +67,20 @@ struct EncoderPayload
 
 // functions //
 
-static int encodeCOBS(uint8_t *buffer, uint8_t length) {
+static int encodeCOBS(uint8_t *buffer, uint8_t length)
+{
 	uint8_t i;
 	uint8_t j;
 	uint8_t sec_hd;
 	
 	sec_hd = 0;
-	for (i=0; i<=length; i++) {
-		if (buffer[i] == 0x00) {
-			for (j=i; j>sec_hd; j--) {
-				buffer[j] = buffer[j-1];
+	for (i = 0; i <= length; i++) 
+    {
+		if (buffer[i] == 0x00) 
+        {
+			for (j = i; j > sec_hd; j--) 
+            {
+				buffer[j] = buffer[j - 1];
 			}
 			buffer[sec_hd] = i - sec_hd + 1;
 			sec_hd = i + 1;
@@ -84,30 +88,40 @@ static int encodeCOBS(uint8_t *buffer, uint8_t length) {
 	}
 	
 	buffer[length+1] = 0x00;
-	
 	return length + 2;
 }
 
-static int decodeCOBS(uint8_t *buffer, uint8_t length) {
+static int decodeCOBS(uint8_t *buffer, uint8_t length) 
+{
 	uint8_t i;
 	uint8_t sec_end;
 	
 	sec_end = buffer[0];
-	for (i=0; i<length-2; i++) {
-		if (i < sec_end-1) {
-			buffer[i] = buffer[i+1];
-			if (buffer[i] == 0x00) {
+	for (i = 0; i < length - 2; i++) 
+    {
+		if (i < sec_end - 1) 
+        {
+			buffer[i] = buffer[i + 1];
+			if (buffer[i] == 0x00)
+            {
 				return i;
 			}
-		} else {
+		}
+        else 
+        {
 			buffer[i] = 0x00;
-			if (buffer[i+1] != 0x00) {
-				sec_end += buffer[i+1];
-			} else {
+			if (buffer[i + 1] != 0x00) 
+            {
+				sec_end += buffer[i + 1];
+			}
+            else 
+            {
 				return i;
 			}
 		}
 	}
+
+    return 0;
 }
 
 /**
