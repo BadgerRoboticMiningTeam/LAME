@@ -104,16 +104,19 @@ namespace BaseStation
 
                 case Opcode.REMOTE_SWITCH:
                     currentDriveMode = DriveMode.Remote;
-                    for (int i = 0; i < robotModeListBox.Items.Count; i++)
+                    Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        var boxItem = robotModeListBox.Items[i] as ComboBoxItem;
-                        var item = boxItem.Content as string;
-                        if (item == "Remote Drive")
+                        for (int i = 0; i < robotModeListBox.Items.Count; i++)
                         {
-                            robotModeListBox.SelectedIndex = i;
-                            break;
+                            var boxItem = robotModeListBox.Items[i] as ComboBoxItem;
+                            var item = boxItem.Content as string;
+                            if (item == "Remote Drive")
+                            {
+                                robotModeListBox.SelectedIndex = i;
+                                break;
+                            }
                         }
-                    }
+                    }));
 
                     logger.Write(LoggerLevel.Warning, "LAME detected AI timeout and has reverted to manual control.");
                     break;
