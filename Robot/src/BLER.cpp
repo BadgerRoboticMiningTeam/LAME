@@ -12,7 +12,7 @@ constexpr int AI_TIMEOUT_INTERVAL = 5; // AI dead timeout
 
 BLER::BLER(int base_port, int ai_port, std::string& serial_port) : 
 	socket(new UdpSocket(base_port)),
-	serialPort(new SerialPort(serial_port, 115200))
+	serialPort(new SerialPort(serial_port, 1000000))
 {
     // init serial port //
 	serialPort->Open();
@@ -123,6 +123,7 @@ void BLER::ReceivePacketsFromUdp()
 			case QUERY_HEARTBEAT_OPCODE:
 			{
 				uint8_t pkt[16];
+                memset(pkt, 0, 16);
 				int bytes_written = CreateReportHeartbeatPacket(pkt, 16);
                 std::cout << "Sent ReportHeartbeat" << std::endl;
 				this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
@@ -139,6 +140,7 @@ void BLER::ReceivePacketsFromUdp()
 			case AI_SWITCH_OPCODE:
             {
                 uint8_t pkt[16];
+                memset(pkt, 0, 16);
 				this->currentMode = DriveMode::AI;
                 int bytes_written = CreateSwitchModeAckPacket(pkt, 16);
                 this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
@@ -161,10 +163,11 @@ void BLER::ReceivePacketsFromUdp()
 			case REMOTE_SWITCH_OPCODE:
             {
                 uint8_t pkt[16];
+                memset(pkt, 0, 16);
 				lastDrivePayloadReceivedTime = time(nullptr);
 				this->currentMode = DriveMode::Remote;
                 int bytes_written = CreateSwitchModeAckPacket(pkt, 16);
-                this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
+                this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &baseStationAddr);
                 std::cout << "Switched to Remote mode" << std::endl;
 				break;
             }
@@ -179,6 +182,10 @@ void BLER::ReceivePacketsFromUdp()
 				break;
 
 			case DRIVE_OPCODE:
+                DrivePayload localPayload;
+                ParseDrivePayload(payload, &localPayload);
+                this->latestDrivePayload = localPayload;
+                this->lastDrivePayloadReceivedTime = time(nullptr);
 				break;
 
 			default:
@@ -229,6 +236,14 @@ void BLER::Execute()
 				}
 
 				int bytes_written = CreateDrivePacket(buffer, 64, localPayload);
+
+                int i = 0;
+                printf("Buffer to LaunchPad\n");
+                while (buffer[i] != 0x00) {
+                    printf("0x%X ", (uint8_t)buffer[i]);
+                    i++;
+                }
+                printf("\n");
 				this->SendPacketSerial(buffer, bytes_written);
 				break;
 			}
@@ -242,6 +257,7 @@ void BLER::Execute()
 
 void BLER::QueryHeartbeatAI()
 {
+    /*
     uint8_t queryBuffer[16];
     uint8_t remoteBuffer[16];
 
@@ -265,6 +281,7 @@ void BLER::QueryHeartbeatAI()
         this->SendPacketUdp(queryBuffer, queryHeartbeatWritten, (struct sockaddr *) &this->aiAddr);
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+    */
 }
 
 bool BLER::Run()

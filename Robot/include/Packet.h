@@ -121,7 +121,7 @@ static int decodeCOBS(uint8_t *buffer, uint8_t length)
 		}
 	}
 
-    return 0;
+    return i;
 }
 
 /**

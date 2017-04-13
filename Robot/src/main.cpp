@@ -40,13 +40,13 @@ int main(int argc, char **argv)
 			i++;
 		}
 	}
-/*
+
 	if (serial_port == "")
 	{
 		std::cout << "Serial port not specified!" << std::endl;
 		return 1;
 	}
-*/
+
 	std::unique_ptr<BLER> bler(new BLER(port, ai_remote_port, serial_port));
 	if (!bler->Run())
 	{
