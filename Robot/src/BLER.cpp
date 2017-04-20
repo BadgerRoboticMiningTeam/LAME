@@ -8,6 +8,7 @@ using namespace LAME;
 
 constexpr int READ_BUFFER_SIZE = 64;
 constexpr int AI_TIMEOUT_INTERVAL = 5; // AI dead timeout 
+constexpr int XBOX_DEADZONE = 20;
 
 
 BLER::BLER(int base_port, int ai_port, std::string& serial_port) : 
@@ -219,6 +220,12 @@ void BLER::Execute()
 				int js_id = jsIDs[0];
 				payload.left = js.GetLeftY(js_id, left) ? left : 0;
 				payload.right = js.GetRightY(js_id, right) ? right : 0;
+                
+                if (payload.left > -XBOX_DEADZONE && payload.left < XBOX_DEADZONE)
+                    payload.left = 0;
+                if (payload.right > -XBOX_DEADZONE && payload.right < XBOX_DEADZONE)
+                    payload.right = 0;
+                
 				int bytes_written = CreateDrivePacket(buffer, 64, payload);
 				this->SendPacketSerial(buffer, bytes_written);
 				break;
@@ -257,7 +264,6 @@ void BLER::Execute()
 
 void BLER::QueryHeartbeatAI()
 {
-    /*
     uint8_t queryBuffer[16];
     uint8_t remoteBuffer[16];
 
@@ -269,6 +275,12 @@ void BLER::QueryHeartbeatAI()
 
     while (this->isRunning)
     {
+        if (this->currentMode != DriveMode::AI)
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            continue;
+        }
+        
         // AI is probably dead, revert to remote control
         if (difftime(time(nullptr), this->lastAIHeartbeatReceivedTime) > AI_TIMEOUT_INTERVAL)
         {
@@ -281,7 +293,6 @@ void BLER::QueryHeartbeatAI()
         this->SendPacketUdp(queryBuffer, queryHeartbeatWritten, (struct sockaddr *) &this->aiAddr);
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    */
 }
 
 bool BLER::Run()
