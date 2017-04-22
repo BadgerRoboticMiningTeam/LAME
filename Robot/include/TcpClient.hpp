@@ -18,7 +18,7 @@
 
 constexpr _socket_t INVALID_SOCKET_HANDLE = (_socket_t) -1;
 
-namespace BCL
+namespace LAME
 {
     class TcpClient
     {

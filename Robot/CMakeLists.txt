@@ -3,7 +3,7 @@ project(LAME)
 
 # external dependencies
 find_package(Threads REQUIRED)
-#find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED)
 
 # C++11 required
 set (CMAKE_CXX_STANDARD 11)
@@ -26,4 +26,4 @@ include_directories(${CMAKE_SOURCE_DIR}/../JoystickLibrary/cpp/include include)
 file(GLOB ROBOT_SRC src/*.cpp src/*.c include/*.hpp include/*.h)
 
 add_executable(${PROJECT_NAME} ${ROBOT_SRC})
-target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} JoystickLibrary)
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} JoystickLibrary)

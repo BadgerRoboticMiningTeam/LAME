@@ -6,9 +6,8 @@
              xmlns:local="clr-namespace:BaseStation"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <TextBox x:Name="LoggerTextBox" TextWrapping="Wrap" 
+    <RichTextBox x:Name="LoggerTextBox"
             Background="LightGray" IsReadOnly="True" Height="Auto"
-            Text="{Binding Path=Text, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
             VerticalScrollBarVisibility="Visible" 
             Margin="5"/>
 </UserControl>

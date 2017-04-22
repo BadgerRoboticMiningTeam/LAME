@@ -1,5 +1,6 @@
 #include "BLER.hpp"
 #include "Packet.h"
+#include "TcpClient.hpp"
 #include <cstdint>
 #include <iostream>
 #include <cstdio>
@@ -9,6 +10,12 @@ using namespace LAME;
 constexpr int READ_BUFFER_SIZE = 64;
 constexpr int AI_TIMEOUT_INTERVAL = 5; // AI dead timeout 
 constexpr int XBOX_DEADZONE = 20;
+constexpr int BASE_IMAGE_PORT = 11000;
+
+const std::vector<int> params = {
+    CV_IMWRITE_JPEG_QUALITY,
+    5
+};
 
 
 BLER::BLER(int base_port, int ai_port, std::string& serial_port) : 
@@ -178,9 +185,64 @@ void BLER::ReceivePacketsFromUdp()
 				break;
 
 			case QUERY_CAMERA_IMAGE_OPCODE:
-				// TODO: read camera
-				// TODO: send to appropriate location
-				break;
+            {
+                cv::Mat img, filtered;
+                std::vector<uchar> raw_compressed_data;
+                struct sockaddr_in img_addr;
+
+                if (!camera.isOpened())
+                {
+                    std::cout << "Camera is not open, ignoring camera query request!" << std::endl;
+                    break;
+                }
+                
+                // read a frame //
+                camera >> img;
+                if (!img.data)
+                {
+                    std::cout << "Failed to read data from camera!" << std::endl;
+                    break;
+                }
+
+                // convert to grayscale, then compress it //
+                cv::cvtColor(img, filtered, cv::COLOR_BGR2GRAY);
+                if (!cv::imencode(".jpg", filtered, raw_compressed_data, params))
+                {
+                    std::cout << "Failed to encode camera data!" << std::endl;
+                    break;
+                }
+
+                // send to base station //
+                std::unique_ptr<TcpClient> tcpClient(new TcpClient());
+                if (!tcpClient->Open())
+                {
+                    std::cout << "Failed to open TCP port for image send!" << std::endl;
+                    break;
+                }
+
+                // set up image port address //
+                img_addr = this->baseStationAddr;
+                img_addr.sin_port = htons(BASE_IMAGE_PORT);
+                if (!tcpClient->Connect(img_addr))
+                {
+                    std::cout << "Failed to connect to base station image port?" << std::endl;
+                    break;
+                }
+
+                // send header //
+                auto size = raw_compressed_data.size();
+                uint8_t firstPkt[] = { 0xAA, 0, 0, 0, 0, 0x7F };
+                firstPkt[1] = (uint8_t)(size >> 24);
+                firstPkt[2] = (uint8_t)(size >> 16);
+                firstPkt[3] = (uint8_t)(size >> 8);
+                firstPkt[4] = (uint8_t)size;
+                tcpClient->Write(firstPkt, 6);
+
+                // send data //
+                tcpClient->Write(&raw_compressed_data[0], static_cast<unsigned int>(size));
+                std::cout << "Sent an image back to base station!" << std::endl;
+                break;
+            }
 
 			case DRIVE_OPCODE:
                 DrivePayload localPayload;
@@ -256,7 +318,6 @@ void BLER::Execute()
 			}
 
             case DriveMode::AI:
-                // TODO:
                 break;
         }
     }
@@ -297,12 +358,16 @@ void BLER::QueryHeartbeatAI()
 
 bool BLER::Run()
 {
-    if (!socket->Open()) //|| !serialPort->Open())
+    if (!socket->Open() || !serialPort->Open())
         return false;
 
     // initialize joystick //
 	if (!js.Initialize())
 		return false;
+
+    // initialize camera //
+    if (!camera.open(0))
+        return false;
 
     this->isRunning = true;
 
@@ -310,7 +375,7 @@ bool BLER::Run()
 	serialReadThread = std::thread(&BLER::ReceivePacketsFromSerial, this);
 	udpReadThread = std::thread(&BLER::ReceivePacketsFromUdp, this);
 	executeThread = std::thread(&BLER::Execute, this);
-    aiHeartbeatThread = std::thread(&BLER::QueryHeartbeatAI, this);
+    //aiHeartbeatThread = std::thread(&BLER::QueryHeartbeatAI, this);
 
     // init successful //
     return true;

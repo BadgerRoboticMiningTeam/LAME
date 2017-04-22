@@ -1,6 +1,6 @@
 #include "TcpClient.hpp"
 
-using namespace BCL;
+using namespace LAME;
 
 
 TcpClient::TcpClient(int port)

@@ -1,18 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace BaseStation
 {
@@ -21,26 +11,46 @@ namespace BaseStation
     /// </summary>
     public partial class LoggerControl : UserControl
     {
-        private Logger log;
+        Logger log;
+        Paragraph paragraph;
+
+        static readonly IDictionary<LoggerLevel, Brush> levelColorMap = new Dictionary<LoggerLevel, Brush> {
+            { LoggerLevel.Info, Brushes.Blue },
+            { LoggerLevel.Warning, Brushes.Yellow },
+            { LoggerLevel.Error, Brushes.Red }
+        };
 
         public LoggerControl()
         {
             InitializeComponent();
+
+            paragraph = new Paragraph();
+            LoggerTextBox.Document = new FlowDocument(paragraph);
+
             log = Logger.GetInstance(DateTime.Now.ToString("MMddyyyy_HHmmss") + ".log");
-            log.PropertyChanged += LoggerUpdated;
+            log.LogUpdated += LoggerUpdated;
             DataContext = log;
 
             log.Write(LoggerLevel.Info, "Base Station GUI Logger initialized.");
         }
 
-        void LoggerUpdated(object sender, PropertyChangedEventArgs e)
+        void LoggerUpdated(LogItem item)
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                // not very efficient, but it'll do
-                LoggerTextBox.Text = log.Text;
-                LoggerTextBox.Focus();
-                LoggerTextBox.CaretIndex = LoggerTextBox.Text.Length;
+                // [{time} | {level}] {data}\n
+                TextRange tr1 = new TextRange(LoggerTextBox.Document.ContentEnd, LoggerTextBox.Document.ContentEnd);
+                tr1.Text = "[" + item.Timestamp + " | ";
+                tr1.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Black);
+
+                TextRange tr2 = new TextRange(LoggerTextBox.Document.ContentEnd, LoggerTextBox.Document.ContentEnd);
+                tr2.Text = Logger.levelMap[item.Level];
+                tr2.ApplyPropertyValue(TextElement.ForegroundProperty, levelColorMap[item.Level]);
+
+                TextRange tr3 = new TextRange(LoggerTextBox.Document.ContentEnd, LoggerTextBox.Document.ContentEnd);
+                tr3.Text = "] " + item.Text + "\r";
+                tr3.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Black);
+
                 LoggerTextBox.ScrollToEnd();
             }));
         }

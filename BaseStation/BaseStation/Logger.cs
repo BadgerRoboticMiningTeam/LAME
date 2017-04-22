@@ -9,15 +9,22 @@ namespace BaseStation
 {
     enum LoggerLevel : int
     {
-        Info = 1,
-        Warning = 2,
-        Error = 3
+        Info,
+        Warning,
+        Error
     }
 
-    class Logger : IDisposable, INotifyPropertyChanged
+    struct LogItem
+    {
+        public LoggerLevel Level;
+        public string Timestamp;
+        public string Text;
+    }
+
+    class Logger : IDisposable
     {
         static Logger instance;
-        static readonly Dictionary<LoggerLevel, string> levelMap = new Dictionary<LoggerLevel, string> {
+        public static readonly IDictionary<LoggerLevel, string> levelMap = new Dictionary<LoggerLevel, string> {
             { LoggerLevel.Info, "INFO" },
             { LoggerLevel.Warning, "WARN" },
             { LoggerLevel.Error, "ERROR" }
@@ -26,7 +33,8 @@ namespace BaseStation
         StreamWriter writer;
         StringBuilder text;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public delegate void UpdateLoggerEventHandler(LogItem item);
+        public event UpdateLoggerEventHandler LogUpdated;
 
         /// <summary>
         /// Gets or creates a Logger instance.
@@ -52,6 +60,7 @@ namespace BaseStation
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Write(LoggerLevel level, string log_text)
         {
+            var currentTime = DateTime.Now.ToString("HH:mm:ss");
             string converted_text = string.Format("[{0} | {1}] {2}\n", DateTime.Now.ToString("HH:mm:ss"), levelMap[level], log_text);
             text.Append(converted_text);
 
@@ -61,17 +70,17 @@ namespace BaseStation
                 writer.Flush();
             }
 
-            OnPropertyChanged("LoggerUpdate");
+            var item = new LogItem();
+            item.Level = level;
+            item.Text = log_text;
+            item.Timestamp = currentTime;
+
+            LogUpdated?.Invoke(item);
         }
 
         public string Text
         {
             get { return text.ToString(); }
-        }
-
-        protected void OnPropertyChanged(string name)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
         #region IDisposable Support

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Windows;
 
@@ -10,12 +7,12 @@ using System.Net.Sockets;
 
 using BaseStation.Packet;
 using JoystickLibrary;
-using Emgu.CV;
-using Emgu.CV.Structure;
 using System.Timers;
 using System.Windows.Media;
 using System.Windows.Controls;
 using System.ComponentModel;
+using System.IO;
+using System.Drawing;
 
 namespace BaseStation
 {
@@ -38,16 +35,21 @@ namespace BaseStation
 
         Logger logger;
         UdpClient packetSocket;
-        UdpClient imageSocket;
+        TcpListener imgListener;
         Xbox360Service xboxService;
         System.Timers.Timer queryHeartbeatTimer;
-        bool isConnected;
-        bool receivedDriveModeAck;
+
         DriveMode currentDriveMode;
         IPEndPoint robotPacketEndpoint;
+
         Thread connectionThread;
         Thread joystickReadThread;
+        Thread imgListenerThread;
+
         bool windowClosing;
+        bool isConnected;
+        bool receivedDriveModeAck;
+
         DateTime lastHeartbeatReceived;
         PacketHandler handler;
 
@@ -68,8 +70,12 @@ namespace BaseStation
             packetSocket = new UdpClient(PKT_PORT);
             packetSocket.BeginReceive(PacketReceiveCallback, null);
 
-            imageSocket = new UdpClient(IMG_PORT);
-            imageSocket.BeginReceive(ImageReceiveCallback, null);
+            imgListener = new TcpListener(IPAddress.Any, IMG_PORT);
+            imgListener.Start();
+
+            imgListenerThread = new Thread(ImageListenerThread);
+            imgListenerThread.SetApartmentState(ApartmentState.STA);
+            imgListenerThread.Start();
 
             queryHeartbeatTimer = new System.Timers.Timer(QUERY_HEARTBEAT_INTERVAL);
             queryHeartbeatTimer.Elapsed += new ElapsedEventHandler(QueryHeartbeatEvent);
@@ -130,19 +136,77 @@ namespace BaseStation
             }
         }
 
-        void ImageReceiveCallback(IAsyncResult ar)
+        void ImageListenerThread()
         {
-            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 0);
-            byte[] buffer = imageSocket.EndReceive(ar, ref endpoint);
-            imageSocket.BeginReceive(PacketReceiveCallback, null);
-
-            Dispatcher.BeginInvoke(new Action(() => 
+            while (!windowClosing)
             {
-                Image<Gray, byte> depthImage = new Image<Gray, byte>(640, 480);
-                depthImage.Bytes = buffer;
+                int size = -1;
 
-                cameraImage.Source = Util.ToBitmapSource(depthImage);
-            }));
+                TcpClient client;
+                try
+                {
+                    client = imgListener.AcceptTcpClient();
+                }
+                catch (SocketException)
+                {
+                    continue;
+                }
+
+                NetworkStream stream = client.GetStream();
+                logger.Write(LoggerLevel.Info, "Microscope image is incoming!");
+                // read img size from connection
+                byte[] hdr_pkt = new byte[16];
+                int bytes = stream.Read(hdr_pkt, 0, 16);
+                if (hdr_pkt[0] == 0xAA && hdr_pkt[5] == 0x7F)
+                    size = (hdr_pkt[1] << 24) | (hdr_pkt[2] << 16) | (hdr_pkt[3] << 8) | hdr_pkt[4];
+                else
+                    size = 32768;
+
+                // read the data - credit to Jon Skeet
+                int read = 0;
+                int chunk;
+                byte[] buffer = new byte[size];
+                while ((chunk = stream.Read(buffer, read, buffer.Length - read)) > 0)
+                {
+                    read += chunk;
+
+                    // If we've reached the end of our buffer, check to see if there's
+                    // any more information
+                    if (read == buffer.Length)
+                    {
+                        int nextByte = stream.ReadByte();
+
+                        // End of stream? If so, we're done
+                        if (nextByte == -1)
+                            break;
+
+                        // Nope. Resize the buffer, put in the byte we've just
+                        // read, and continue
+                        byte[] newBuffer = new byte[buffer.Length * 2];
+                        Array.Copy(buffer, newBuffer, buffer.Length);
+                        newBuffer[read] = (byte)nextByte;
+                        buffer = newBuffer;
+                        read++;
+                    }
+                }
+
+                // if it grew, then resize to correct size
+                byte[] ret = new byte[read];
+                Array.Copy(buffer, ret, read);
+
+                // now, display the image
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    using (var ms = new MemoryStream(ret))
+                    {
+                        Bitmap bmpImage = (Bitmap)Bitmap.FromStream(ms);
+                        cameraImage.Source = Util.ConvertBitmapToBitmapImage(bmpImage);
+                    }
+                }));
+
+                // close the connection
+                client.Close();
+            }
         }
 
         void QueryHeartbeatEvent(object sender, ElapsedEventArgs e)
@@ -330,7 +394,8 @@ namespace BaseStation
         void WindowClosing(object sender, CancelEventArgs e)
         {
             windowClosing = true;
-
+            imgListener.Stop();
+            
             xboxService.Stop();
             if (joystickReadThread.IsAlive)
                 joystickReadThread.Abort();

@@ -7,6 +7,9 @@
 #include "Serial.hpp"
 #include "UdpSocket.hpp"
 #include <Xbox360Service.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 using JoystickLibrary::Xbox360Service;
 
@@ -30,7 +33,6 @@ namespace LAME
 		void SendPacketUdp(const uint8_t *buffer, int length, struct sockaddr *addr);
         bool Run();
         
-
     private:
         void ReceivePacketsFromSerial();
         void ReceivePacketsFromUdp();
@@ -51,6 +53,8 @@ namespace LAME
         std::thread udpReadThread;
         std::thread executeThread;
         std::thread aiHeartbeatThread;
+
+        cv::VideoCapture camera;
 
 		// packet payload structs //
 		DrivePayload latestDrivePayload;
