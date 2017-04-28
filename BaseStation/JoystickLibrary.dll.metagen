@@ -1,0 +1,86 @@
+ImageRuntimeVersion: v4.0.30319
+Assembly JoystickLibrary, Version=0.0.*, Culture=Invariant Language (Invariant Country): 
+	hash=SHA1, flags=PublicKey
+Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Class JoystickLibrary.JoystickService: AutoLayout, AnsiClass, Class, Public, Abstract, BeforeFieldInit
+    Void .ctor(Int32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Methods:
+    Initialize(): PrivateScope, Public, HideBySig
+    GetJoystickIDs(): PrivateScope, Public, HideBySig
+    GetConnectedJoysticksCount(): PrivateScope, Public, HideBySig
+    Start(): PrivateScope, Public, HideBySig
+    Stop(): PrivateScope, Public, HideBySig
+    RemoveJoystick(Int32): PrivateScope, Public, HideBySig
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Class JoystickLibrary.Extreme3DProService: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :JoystickLibrary.JoystickService
+    Void .ctor(Int32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    GetX(Int32, Int32&): PrivateScope, Public, HideBySig
+    GetY(Int32, Int32&): PrivateScope, Public, HideBySig
+    GetZRot(Int32, Int32&): PrivateScope, Public, HideBySig
+    GetSlider(Int32, Int32&): PrivateScope, Public, HideBySig
+    GetButton(Int32, Extreme3DProButton, Boolean&): PrivateScope, Public, HideBySig
+    GetButtons(Int32, Boolean[]&): PrivateScope, Public, HideBySig
+    GetPOV(Int32, POV&): PrivateScope, Public, HideBySig
+Class JoystickLibrary.Xbox360Service: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :JoystickLibrary.JoystickService
+    Void .ctor(Int32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    GetLeftX(Int32, Int32&): PrivateScope, Public, HideBySig
+    GetLeftY(Int32, Int32&): PrivateScope, Public, HideBySig
+    GetRightX(Int32, Int32&): PrivateScope, Public, HideBySig
+    GetRightY(Int32, Int32&): PrivateScope, Public, HideBySig
+    GetLeftTrigger(Int32, Int32&): PrivateScope, Public, HideBySig
+    GetRightTrigger(Int32, Int32&): PrivateScope, Public, HideBySig
+    GetDpad(Int32, POV&): PrivateScope, Public, HideBySig
+    GetButton(Int32, Xbox360Button, Boolean&): PrivateScope, Public, HideBySig
+    GetButtons(Int32, Boolean[]&): PrivateScope, Public, HideBySig
+Struct JoystickLibrary.POV: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    JoystickLibrary.POV POV_NONE = 0 : Public, Static, Literal, HasDefault
+    JoystickLibrary.POV POV_WEST = 1 : Public, Static, Literal, HasDefault
+    JoystickLibrary.POV POV_EAST = 2 : Public, Static, Literal, HasDefault
+    JoystickLibrary.POV POV_NORTH = 4 : Public, Static, Literal, HasDefault
+    JoystickLibrary.POV POV_SOUTH = 8 : Public, Static, Literal, HasDefault
+    JoystickLibrary.POV POV_NORTHWEST = 5 : Public, Static, Literal, HasDefault
+    JoystickLibrary.POV POV_NORTHEAST = 6 : Public, Static, Literal, HasDefault
+    JoystickLibrary.POV POV_SOUTHWEST = 9 : Public, Static, Literal, HasDefault
+    JoystickLibrary.POV POV_SOUTHEAST = 10 : Public, Static, Literal, HasDefault
+Struct JoystickLibrary.Extreme3DProButton: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    JoystickLibrary.Extreme3DProButton Trigger = 0 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button2 = 1 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button3 = 2 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button4 = 3 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button5 = 4 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button6 = 5 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button7 = 6 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button8 = 7 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button9 = 8 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button10 = 9 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button11 = 10 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Extreme3DProButton Button12 = 11 : Public, Static, Literal, HasDefault
+Struct JoystickLibrary.Xbox360Button: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    JoystickLibrary.Xbox360Button A = 0 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Xbox360Button B = 1 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Xbox360Button X = 2 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Xbox360Button Y = 3 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Xbox360Button LB = 4 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Xbox360Button RB = 5 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Xbox360Button Back = 6 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Xbox360Button Start = 7 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Xbox360Button LeftThumbstick = 8 : Public, Static, Literal, HasDefault
+    JoystickLibrary.Xbox360Button RightThumbstick = 9 : Public, Static, Literal, HasDefault
