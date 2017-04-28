@@ -30,7 +30,7 @@ namespace BaseStation
     {
         const int PKT_PORT = 10000;
         const int IMG_PORT = 11000;
-        const double QUERY_HEARTBEAT_INTERVAL = 1e3;
+        const double QUERY_HEARTBEAT_INTERVAL = 10e3;
         const int JS_DEADZONE = 15;
 
         Logger logger;
@@ -52,6 +52,7 @@ namespace BaseStation
 
         DateTime lastHeartbeatReceived;
         PacketHandler handler;
+        MemoryStream currentImgStream;
 
         public MainWindow()
         {
@@ -153,7 +154,7 @@ namespace BaseStation
                 }
 
                 NetworkStream stream = client.GetStream();
-                logger.Write(LoggerLevel.Info, "Microscope image is incoming!");
+                logger.Write(LoggerLevel.Info, "Image is incoming!");
                 // read img size from connection
                 byte[] hdr_pkt = new byte[16];
                 int bytes = stream.Read(hdr_pkt, 0, 16);
@@ -194,18 +195,33 @@ namespace BaseStation
                 byte[] ret = new byte[read];
                 Array.Copy(buffer, ret, read);
 
+                MemoryStream localMs = new MemoryStream(ret);
+
+                Bitmap bmpImage;
+                try
+                {
+                    bmpImage = new Bitmap(localMs);
+                }
+                catch (ArgumentException)
+                {
+                    return;
+                }
+
                 // now, display the image
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    using (var ms = new MemoryStream(ret))
-                    {
-                        Bitmap bmpImage = (Bitmap)Bitmap.FromStream(ms);
-                        cameraImage.Source = Util.ConvertBitmapToBitmapImage(bmpImage);
-                    }
+                    cameraImage.Source = Util.ConvertBitmapToBitmapImage(bmpImage);
                 }));
+
+                if (currentImgStream != null)
+                    currentImgStream.Close();
+
+                currentImgStream = localMs;
 
                 // close the connection
                 client.Close();
+
+                logger.Write(LoggerLevel.Info, "Image updated.");
             }
         }
 
@@ -388,7 +404,8 @@ namespace BaseStation
                 return;
 
             logger.Write(LoggerLevel.Info, "Requesting image from BLER...");
-            // TODO: implement packet
+            byte[] buffer = handler.GetQueryCameraImagePacket();
+            packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
         }
 
         void WindowClosing(object sender, CancelEventArgs e)
