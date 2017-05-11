@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BaseStation"
-        mc:Ignorable="d"
+        mc:Ignorable="d" Closing="WindowClosing"
         Title="Base Station" MinHeight="700" MinWidth="1100" Height="700" Width="1100">
     <Grid Background="White">
         <Grid.ColumnDefinitions>
@@ -103,7 +103,7 @@
 
                 <!-- request camera image block -->
                 <Border Grid.Row="3" BorderBrush="Black" BorderThickness="0 0 0 1">
-                    <Button x:Name="requestCameraButton" IsEnabled="False" FontSize="16" Click="RequestImageClicked">
+                    <Button x:Name="requestCameraButton" IsEnabled="False" FontSize="16" Click="RequestImageClicked" Background="Goldenrod">
                         Request Camera Image
                     </Button>
                 </Border>

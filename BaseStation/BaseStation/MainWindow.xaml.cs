@@ -163,6 +163,8 @@ namespace BaseStation
                 else
                     size = 32768;
 
+                logger.Write(LoggerLevel.Info, "Image is inbound from BLER!");
+
                 // read the data - credit to Jon Skeet
                 int read = 0;
                 int chunk;
@@ -204,7 +206,8 @@ namespace BaseStation
                 }
                 catch (ArgumentException)
                 {
-                    return;
+                    logger.Write(LoggerLevel.Error, "Failed to parse image!");
+                    continue;
                 }
 
                 // now, display the image
@@ -276,6 +279,7 @@ namespace BaseStation
                     packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
                     if (receivedDriveModeAck)
                     {
+                        logger.Write(LoggerLevel.Info, "Mode switched successfully.");
                         isConnected = true;
                         done = true;
                         SetRobotConnection(true);
@@ -394,7 +398,14 @@ namespace BaseStation
                 return;
             }
 
+            if (connectionThread.IsAlive)
+            {
+                logger.Write(LoggerLevel.Warning, "Already attempting to connect to BLER, ignoring additional press.");
+                return;
+            }
+
             logger.Write(LoggerLevel.Info, "Starting connection sequence with BLER (" + addr + ") with drive mode: " + currentDriveMode);
+            connectionThread = new Thread(new ThreadStart(ConnectingWorker));
             connectionThread.Start();
         }
 
@@ -411,11 +422,14 @@ namespace BaseStation
         void WindowClosing(object sender, CancelEventArgs e)
         {
             windowClosing = true;
+            xboxService.Stop();
             imgListener.Stop();
             
-            xboxService.Stop();
+            if (connectionThread.IsAlive)
+                connectionThread.Abort();
+
             if (joystickReadThread.IsAlive)
-                joystickReadThread.Abort();
+                joystickReadThread.Join();
         }
         #endregion
 
