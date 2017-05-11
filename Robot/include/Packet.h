@@ -9,43 +9,43 @@ extern "C" {
 
 #define __CLAMP(val, max, min) { if (val > max) val = max; if (val < min) val = min; }
 
-#define PKT_HEADER_BYTE						0xAB 
-#define PKT_END_BYTE    					0x7F
-#define PKT_MIN_SIZE						4
-#define PKT_HDR_INDEX						0
-#define PKT_OP_INDEX						1
+#define PKT_HEADER_BYTE                                 0xAB 
+#define PKT_END_BYTE                                    0x7F
+#define PKT_MIN_SIZE                                    4
+#define PKT_HDR_INDEX                                   0
+#define PKT_OP_INDEX                                    1
 #define PKT_PAYLOAD_SIZE_INDEX				2
 #define PKT_PAYLOAD_START_INDEX				3
 
 // opcodes //
-#define DRIVE_OPCODE						0x99
+#define DRIVE_OPCODE                                    0x99
 
-#define DIRECT_SWITCH_OPCODE				0x90
-#define AI_SWITCH_OPCODE					0x91
-#define REMOTE_SWITCH_OPCODE				0x92
-#define SWITCH_MODE_ACK_OPCODE              0x93
+#define DIRECT_SWITCH_OPCODE                            0x90
+#define AI_SWITCH_OPCODE                                0x91
+#define REMOTE_SWITCH_OPCODE                            0x92
+#define SWITCH_MODE_ACK_OPCODE                          0x93
 
-#define AI_INIT_OPCODE                      0x02
-#define QUERY_LOCATION_OPCODE				0x44
-#define REPORT_LOCATION_OPCODE				0x45
-#define SET_TARGET_LOCATION_OPCODE          0x46
+#define AI_INIT_OPCODE                                  0x02
+#define QUERY_LOCATION_OPCODE                           0x44
+#define REPORT_LOCATION_OPCODE                          0x45
+#define SET_TARGET_LOCATION_OPCODE                      0x46
 
-#define QUERY_ENCODER_OPCODE                0x50
-#define REPORT_ENCODER_OPCODE               0x47
+#define QUERY_ENCODER_OPCODE                            0x50
+#define REPORT_ENCODER_OPCODE                           0x47
 
-#define QUERY_CAMERA_IMAGE_OPCODE			0x13
+#define QUERY_CAMERA_IMAGE_OPCODE                       0x13
 
-#define QUERY_HEARTBEAT_OPCODE				0x14
-#define REPORT_HEARTBEAT_OPCODE				0x44
+#define QUERY_HEARTBEAT_OPCODE                          0x14
+#define REPORT_HEARTBEAT_OPCODE                         0x44
 
-#define ESTOP_OPCODE                        0xAA
-#define CLEAR_ESTOP_OPCODE                  0xAB
+#define ESTOP_OPCODE                                    0xAA
+#define CLEAR_ESTOP_OPCODE                              0xAB
 
 // payload structs //
 struct DrivePayload
 {
-	int8_t left;
-	int8_t right;
+    int8_t left;
+    int8_t right;
 };
 
 struct LocationPayload
@@ -69,57 +69,57 @@ struct EncoderPayload
 
 static int encodeCOBS(uint8_t *buffer, uint8_t length)
 {
-	uint8_t i;
-	uint8_t j;
-	uint8_t sec_hd;
-	
-	sec_hd = 0;
-	for (i = 0; i <= length; i++) 
+    uint8_t i;
+    uint8_t j;
+    uint8_t sec_hd;
+
+    sec_hd = 0;
+    for (i = 0; i <= length; i++) 
     {
-		if (buffer[i] == 0x00) 
+        if (buffer[i] == 0x00) 
         {
-			for (j = i; j > sec_hd; j--) 
+            for (j = i; j > sec_hd; j--) 
             {
-				buffer[j] = buffer[j - 1];
-			}
-			buffer[sec_hd] = i - sec_hd + 1;
-			sec_hd = i + 1;
-		}
-	}
-	
-	buffer[length+1] = 0x00;
-	return length + 2;
+                buffer[j] = buffer[j - 1];
+            }
+            buffer[sec_hd] = i - sec_hd + 1;
+            sec_hd = i + 1;
+        }
+    }
+
+    buffer[length+1] = 0x00;
+    return length + 2;
 }
 
 static int decodeCOBS(uint8_t *buffer, uint8_t length) 
 {
-	uint8_t i;
-	uint8_t sec_end;
-	
-	sec_end = buffer[0];
-	for (i = 0; i < length - 2; i++) 
+    uint8_t i;
+    uint8_t sec_end;
+
+    sec_end = buffer[0];
+    for (i = 0; i < length - 2; i++) 
     {
-		if (i < sec_end - 1) 
+        if (i < sec_end - 1) 
         {
-			buffer[i] = buffer[i + 1];
-			if (buffer[i] == 0x00)
+            buffer[i] = buffer[i + 1];
+            if (buffer[i] == 0x00)
             {
-				return i;
-			}
-		}
+                return i;
+            }
+        }
         else 
         {
-			buffer[i] = 0x00;
-			if (buffer[i + 1] != 0x00) 
+            buffer[i] = 0x00;
+            if (buffer[i + 1] != 0x00) 
             {
-				sec_end += buffer[i + 1];
-			}
+                sec_end += buffer[i + 1];
+            }
             else 
             {
-				return i;
-			}
-		}
-	}
+                return i;
+            }
+        }
+    }
 
     return i;
 }
@@ -131,46 +131,46 @@ static int decodeCOBS(uint8_t *buffer, uint8_t length)
  */
 static int ReadPacketHeader(uint8_t *buffer, uint8_t length, uint8_t *opcode, uint8_t **payload_ptr)
 {
-	if (!buffer || length < PKT_MIN_SIZE)
-		return 0;
+    if (!buffer || length < PKT_MIN_SIZE)
+        return 0;
 
-	length = decodeCOBS(buffer, length);
-	
-	if (buffer[PKT_HDR_INDEX] != PKT_HEADER_BYTE)
-		return 0;
+    length = decodeCOBS(buffer, length);
 
-	if (buffer[length - 1] != PKT_END_BYTE)
-		return 0;
+    if (buffer[PKT_HDR_INDEX] != PKT_HEADER_BYTE)
+        return 0;
 
-	if (opcode)
-		*opcode = buffer[PKT_OP_INDEX];
+    if (buffer[length - 1] != PKT_END_BYTE)
+        return 0;
+    
+    if (opcode)
+        *opcode = buffer[PKT_OP_INDEX];
 
-	if (payload_ptr)
-		*payload_ptr = (length == PKT_MIN_SIZE) ? 0 : buffer + PKT_PAYLOAD_START_INDEX;
-	return length;
+    if (payload_ptr)
+        *payload_ptr = (length == PKT_MIN_SIZE) ? 0 : buffer + PKT_PAYLOAD_START_INDEX;
+    return length;
 }
 
 // serialize functions //
 static int CreateNoPayloadPacket(uint8_t *buffer, uint8_t length, uint8_t opcode)
 {
-	if (length < PKT_MIN_SIZE + 2)
-		return 0;
-	buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
-	buffer[PKT_OP_INDEX] = opcode;
-	buffer[PKT_PAYLOAD_SIZE_INDEX] = 0;
-	buffer[PKT_PAYLOAD_START_INDEX] = PKT_END_BYTE;
-	
-	return encodeCOBS(buffer, PKT_MIN_SIZE);
+    if (length < PKT_MIN_SIZE + 2)
+        return 0;
+    buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
+    buffer[PKT_OP_INDEX] = opcode;
+    buffer[PKT_PAYLOAD_SIZE_INDEX] = 0;
+    buffer[PKT_PAYLOAD_START_INDEX] = PKT_END_BYTE;
+
+    return encodeCOBS(buffer, PKT_MIN_SIZE);
 }
 
 static int CreateQueryHeartbeatPacket(uint8_t *buffer, uint8_t length)
 {
-	return CreateNoPayloadPacket(buffer, length, QUERY_HEARTBEAT_OPCODE);
+    return CreateNoPayloadPacket(buffer, length, QUERY_HEARTBEAT_OPCODE);
 }
 
 static int CreateReportHeartbeatPacket(uint8_t *buffer, uint8_t length)
 {
-	return CreateNoPayloadPacket(buffer, length, REPORT_HEARTBEAT_OPCODE);
+    return CreateNoPayloadPacket(buffer, length, REPORT_HEARTBEAT_OPCODE);
 }
 
 static int CreateSwitchModeAckPacket(uint8_t *buffer, uint8_t length)
@@ -205,16 +205,16 @@ static int CreateQueryCameraImagePacket(uint8_t *buffer, uint8_t length)
 
 static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayload payload)
 {
-	if (length < PKT_MIN_SIZE + 2)
-		return 0;
-	buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
-	buffer[PKT_OP_INDEX] = DRIVE_OPCODE;
-	buffer[PKT_PAYLOAD_SIZE_INDEX] = 2;
-	buffer[PKT_PAYLOAD_START_INDEX] = payload.left;
-	buffer[PKT_PAYLOAD_START_INDEX + 1] = payload.right;
-	buffer[PKT_PAYLOAD_START_INDEX + 2] = PKT_END_BYTE;
-	
-	return encodeCOBS(buffer, PKT_MIN_SIZE + 2);
+    if (length < PKT_MIN_SIZE + 2)
+        return 0;
+    buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
+    buffer[PKT_OP_INDEX] = DRIVE_OPCODE;
+    buffer[PKT_PAYLOAD_SIZE_INDEX] = 2;
+    buffer[PKT_PAYLOAD_START_INDEX] = payload.left;
+    buffer[PKT_PAYLOAD_START_INDEX + 1] = payload.right;
+    buffer[PKT_PAYLOAD_START_INDEX + 2] = PKT_END_BYTE;
+
+    return encodeCOBS(buffer, PKT_MIN_SIZE + 2);
 }
 
 static int CreateReportLocationPacket(uint8_t *buffer, uint8_t length, struct LocationPayload payload)
@@ -233,7 +233,7 @@ static int CreateReportLocationPacket(uint8_t *buffer, uint8_t length, struct Lo
     buffer[PKT_PAYLOAD_START_INDEX + 3] = payload.y & 0xFF;
     buffer[PKT_PAYLOAD_START_INDEX + 4] = payload.heading >> 8;
     buffer[PKT_PAYLOAD_START_INDEX + 5] = payload.heading & 0xFF;
-	
+
     return encodeCOBS(buffer, PKT_MIN_SIZE + 3 * sizeof(int16_t));
 }
 
@@ -276,11 +276,11 @@ static int CreateReportEncoderPacket(uint8_t *buffer, uint8_t length, struct Enc
 
 static void ParseDrivePayload(uint8_t *payload, struct DrivePayload *drive)
 {
-	if (!payload || !drive)
-		return;
+    if (!payload || !drive)
+        return;
 
-	drive->left = payload[0];
-	drive->right = payload[1];
+    drive->left = payload[0];
+    drive->right = payload[1];
 }
 
 static void ParseLocationPayload(uint8_t *payload, struct LocationPayload *loc)

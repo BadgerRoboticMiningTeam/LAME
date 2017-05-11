@@ -11,6 +11,7 @@ constexpr int READ_BUFFER_SIZE = 64;
 constexpr int AI_TIMEOUT_INTERVAL = 5; // AI dead timeout 
 constexpr int XBOX_DEADZONE = 20;
 constexpr int BASE_IMAGE_PORT = 11000;
+constexpr int BAUD_RATE = 9600;
 
 const std::vector<int> params = {
     CV_IMWRITE_JPEG_QUALITY,
@@ -19,46 +20,49 @@ const std::vector<int> params = {
 
 
 BLER::BLER(int base_port, int ai_port, std::string& serial_port) : 
-	socket(new UdpSocket(base_port)),
-	serialPort(new SerialPort(serial_port, 1000000))
+    socket(new UdpSocket(base_port)),
+    serialPort(new SerialPort(serial_port, BAUD_RATE))
 {
     // init serial port //
-	serialPort->Open();
+    serialPort->Open();
 
     std::memset(&this->aiAddr, 0, sizeof(struct sockaddr_in));
     this->aiAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     this->aiAddr.sin_family = AF_INET;
     this->aiAddr.sin_port = htons(ai_port);
 
-	// init other fields //
-	this->lastDrivePayloadReceivedTime = time(nullptr);
+    // init other fields //
+    this->lastDrivePayloadReceivedTime = time(nullptr);
     this->lastAIHeartbeatReceivedTime = time(nullptr);
     this->isRunning = false;
     this->aiConnected = false;
     this->currentMode = DriveMode::Direct;
-	memset(&latestDrivePayload, 0, sizeof(DrivePayload));
+    memset(&latestDrivePayload, 0, sizeof(DrivePayload));
+
+    // open the only camera - assumption //
+    this->camera.open(0);
 }
 
 BLER::~BLER()
 {
     this->isRunning = false;
 
-	// close serialport, udpsocket
-	serialPort->Close();
-	socket->Close();
+    // close serialport, udpsocket
+    serialPort->Close();
+    socket->Close();
 
     // join on all threads
     if (aiHeartbeatThread.joinable())
         aiHeartbeatThread.join();
 
-	if (serialReadThread.joinable())
-		serialReadThread.join();
+    if (serialReadThread.joinable())
+        serialReadThread.join();
 
-	if (udpReadThread.joinable())
-		udpReadThread.join();
+    if (udpReadThread.joinable())
+        udpReadThread.join();
 
-	if (executeThread.joinable())
-		executeThread.join();
+    if (executeThread.joinable())
+        executeThread.join();
 }
 
 void BLER::SendPacketSerial(const uint8_t *buffer, int length)
@@ -68,14 +72,14 @@ void BLER::SendPacketSerial(const uint8_t *buffer, int length)
 
 void BLER::SendPacketUdp(const uint8_t *buffer, int length, struct sockaddr *addr)
 {
-	if (addr == nullptr)
-		return;
-
+    if (addr == nullptr)
+        return;
+/*
     printf("buffer: ");
     for (int i = 0; i < length; i++)
         printf(" %x ", buffer[i]);
     printf("\n");    
-
+*/
     this->socket->Write(buffer, length, addr);
 }
 
@@ -111,149 +115,140 @@ void BLER::ReceivePacketsFromUdp()
         if (bytes_read < 0)
             continue;
 
-		bool is_from_ai = addr.sin_family == AF_INET && 
-						  addr.sin_addr.s_addr == htonl(INADDR_LOOPBACK) && 
-						  addr.sin_port == this->aiAddr.sin_port;
+        bool is_from_ai = addr.sin_family == AF_INET && 
+            addr.sin_addr.s_addr == htonl(INADDR_LOOPBACK) && 
+            addr.sin_port == this->aiAddr.sin_port;
 
         if (!is_from_ai)
         {
             baseStationAddr = addr;
         }
 
-		// parse packets //
-		uint8_t opcode = 0;
-		uint8_t *payload = nullptr;
-		if (!ReadPacketHeader(read_buffer, (uint8_t)bytes_read, &opcode, &payload))
-			continue;
+        // parse packets //
+        uint8_t opcode = 0;
+        uint8_t *payload = nullptr;
+        if (!ReadPacketHeader(read_buffer, (uint8_t)bytes_read, &opcode, &payload))
+            continue;
 
-		switch (opcode)
-	    {
-			case QUERY_HEARTBEAT_OPCODE:
-			{
-				uint8_t pkt[16];
-                memset(pkt, 0, 16);
-				int bytes_written = CreateReportHeartbeatPacket(pkt, 16);
-                std::cout << "Sent ReportHeartbeat" << std::endl;
-				this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
-
-                if (is_from_ai)
+        switch (opcode)
+        {
+            case QUERY_HEARTBEAT_OPCODE:
                 {
-                    if (!aiConnected)
-                        aiConnected = true;
-                    this->lastAIHeartbeatReceivedTime = time(nullptr);
-                }
-				break;
-			}
-
-			case AI_SWITCH_OPCODE:
-            {
-                uint8_t pkt[16];
-                memset(pkt, 0, 16);
-				this->currentMode = DriveMode::AI;
-                int bytes_written = CreateSwitchModeAckPacket(pkt, 16);
-                this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
-                std::cout << "Switched to AI mode" << std::endl;
-
-                if (!aiConnected)
-                {
-                    std::cout << "AI is not connected!" << std::endl;
-                }
-                else
-                {
-                    // begin mining cycle
+                    uint8_t pkt[16];
                     memset(pkt, 0, 16);
-                    bytes_written = CreateAiInitPacket(pkt, 16);
+                    int bytes_written = CreateReportHeartbeatPacket(pkt, 16);
+                    std::cout << "Sent ReportHeartbeat" << std::endl;
                     this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
-                }
-				break;
-            }
 
-			case REMOTE_SWITCH_OPCODE:
-            {
-                uint8_t pkt[16];
-                memset(pkt, 0, 16);
-				lastDrivePayloadReceivedTime = time(nullptr);
-				this->currentMode = DriveMode::Remote;
-                int bytes_written = CreateSwitchModeAckPacket(pkt, 16);
-                this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &baseStationAddr);
-                std::cout << "Switched to Remote mode" << std::endl;
-				break;
-            }
-
-			case DIRECT_SWITCH_OPCODE:
-				this->currentMode = DriveMode::Direct;
-				break;
-
-			case QUERY_CAMERA_IMAGE_OPCODE:
-            {
-                cv::Mat img, filtered;
-                std::vector<uchar> raw_compressed_data;
-                struct sockaddr_in img_addr;
-
-                if (!camera.isOpened())
-                {
-                    std::cout << "Camera is not open, ignoring camera query request!" << std::endl;
-                    break;
-                }
-                
-                // read a frame //
-                camera >> img;
-                if (!img.data)
-                {
-                    std::cout << "Failed to read data from camera!" << std::endl;
+                    if (is_from_ai)
+                    {
+                        if (!aiConnected)
+                            aiConnected = true;
+                        this->lastAIHeartbeatReceivedTime = time(nullptr);
+                    }
                     break;
                 }
 
-                // convert to grayscale, then compress it //
-                cv::cvtColor(img, filtered, cv::COLOR_BGR2GRAY);
-                if (!cv::imencode(".jpg", filtered, raw_compressed_data, params))
+            case AI_SWITCH_OPCODE:
                 {
-                    std::cout << "Failed to encode camera data!" << std::endl;
+                    uint8_t pkt[16];
+                    memset(pkt, 0, 16);
+                    this->currentMode = DriveMode::AI;
+                    int bytes_written = CreateSwitchModeAckPacket(pkt, 16);
+                    this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
+                    std::cout << "Switched to AI mode" << std::endl;
+
+                    if (!aiConnected)
+                    {
+                        std::cout << "AI is not connected!" << std::endl;
+                    }
+                    else
+                    {
+                        // begin mining cycle
+                        memset(pkt, 0, 16);
+                        bytes_written = CreateAiInitPacket(pkt, 16);
+                        this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &addr);
+                    }
                     break;
                 }
 
-                // send to base station //
-                std::unique_ptr<TcpClient> tcpClient(new TcpClient());
-                if (!tcpClient->Open())
+            case REMOTE_SWITCH_OPCODE:
                 {
-                    std::cout << "Failed to open TCP port for image send!" << std::endl;
+                    uint8_t pkt[16];
+                    memset(pkt, 0, 16);
+                    lastDrivePayloadReceivedTime = time(nullptr);
+                    this->currentMode = DriveMode::Remote;
+                    int bytes_written = CreateSwitchModeAckPacket(pkt, 16);
+                    this->SendPacketUdp(pkt, bytes_written, (struct sockaddr *) &baseStationAddr);
+                    std::cout << "Switched to Remote mode" << std::endl;
                     break;
                 }
 
-                // set up image port address //
-                img_addr = this->baseStationAddr;
-                img_addr.sin_port = htons(BASE_IMAGE_PORT);
-                if (!tcpClient->Connect(img_addr))
-                {
-                    std::cout << "Failed to connect to base station image port?" << std::endl;
-                    break;
-                }
-
-                // send header //
-                auto size = raw_compressed_data.size();
-                uint8_t firstPkt[] = { 0xAA, 0, 0, 0, 0, 0x7F };
-                firstPkt[1] = (uint8_t)(size >> 24);
-                firstPkt[2] = (uint8_t)(size >> 16);
-                firstPkt[3] = (uint8_t)(size >> 8);
-                firstPkt[4] = (uint8_t)size;
-                tcpClient->Write(firstPkt, 6);
-
-                // send data //
-                tcpClient->Write(&raw_compressed_data[0], static_cast<unsigned int>(size));
-                std::cout << "Sent an image back to base station!" << std::endl;
+            case DIRECT_SWITCH_OPCODE:
+                this->currentMode = DriveMode::Direct;
                 break;
-            }
 
-			case DRIVE_OPCODE:
+            case QUERY_CAMERA_IMAGE_OPCODE:
+                {
+                    cv::Mat img, filtered;
+                    std::vector<uchar> raw_compressed_data;
+                    struct sockaddr_in img_addr;
+
+                    // read a frame //
+                    cameraMutex.lock();
+                    img = this->latestCameraFrame;
+                    cameraMutex.unlock();
+
+                    // convert to grayscale, then compress it //
+                    cv::cvtColor(img, filtered, cv::COLOR_BGR2GRAY);
+                    if (!cv::imencode(".jpg", filtered, raw_compressed_data, params))
+                    {
+                        std::cout << "Failed to encode camera data!" << std::endl;
+                        break;
+                    }
+
+                    // send to base station //
+                    std::unique_ptr<TcpClient> tcpClient(new TcpClient());
+                    if (!tcpClient->Open())
+                    {
+                        std::cout << "Failed to open TCP port for image send!" << std::endl;
+                        break;
+                    }
+
+                    // set up image port address //
+                    img_addr = this->baseStationAddr;
+                    img_addr.sin_port = htons(BASE_IMAGE_PORT);
+                    if (!tcpClient->Connect(img_addr))
+                    {
+                        std::cout << "Failed to connect to base station image port?" << std::endl;
+                        break;
+                    }
+
+                    // send header //
+                    auto size = raw_compressed_data.size();
+                    uint8_t firstPkt[] = { 0xAA, 0, 0, 0, 0, 0x7F };
+                    firstPkt[1] = (uint8_t)(size >> 24);
+                    firstPkt[2] = (uint8_t)(size >> 16);
+                    firstPkt[3] = (uint8_t)(size >> 8);
+                    firstPkt[4] = (uint8_t)size;
+                    tcpClient->Write(firstPkt, 6);
+
+                    // send data //
+                    tcpClient->Write(&raw_compressed_data[0], static_cast<unsigned int>(size));
+                    std::cout << "Sent an image back to base station!" << std::endl;
+                    break;
+                }
+
+            case DRIVE_OPCODE:
                 DrivePayload localPayload;
                 ParseDrivePayload(payload, &localPayload);
                 this->latestDrivePayload = localPayload;
                 this->lastDrivePayloadReceivedTime = time(nullptr);
-				break;
+                break;
 
-			default:
-				continue;
-		}
+            default:
+                continue;
+        }
 
         memset(read_buffer, 0, READ_BUFFER_SIZE);
     }
@@ -263,62 +258,58 @@ void BLER::Execute()
 {
     while (this->isRunning)
     {
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		uint8_t buffer[64];
-		memset(buffer, 0, 64);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        uint8_t buffer[64];
+        memset(buffer, 0, 64);
 
         switch (this->currentMode)
         {
             case DriveMode::Direct:
-			{
-				std::vector<int> jsIDs;
-				DrivePayload payload;
-				int left, right;
+                {
+                    std::vector<int> jsIDs;
+                    DrivePayload payload;
+                    int left, right;
 
-				jsIDs = js.GetIDs();
-				if (jsIDs.size() < 1)
-					continue;
+                    jsIDs = js.GetIDs();
+                    if (jsIDs.size() < 1)
+                        continue;
 
-				int js_id = jsIDs[0];
-				payload.left = js.GetLeftY(js_id, left) ? left : 0;
-				payload.right = js.GetRightY(js_id, right) ? right : 0;
-                
-                if (payload.left > -XBOX_DEADZONE && payload.left < XBOX_DEADZONE)
-                    payload.left = 0;
-                if (payload.right > -XBOX_DEADZONE && payload.right < XBOX_DEADZONE)
-                    payload.right = 0;
-                
-				int bytes_written = CreateDrivePacket(buffer, 64, payload);
-				this->SendPacketSerial(buffer, bytes_written);
-				break;
-			}
+                    int js_id = jsIDs[0];
+                    payload.left = js.GetLeftY(js_id, left) ? left : 0;
+                    payload.right = js.GetRightY(js_id, right) ? right : 0;
+
+                    if (payload.left > -XBOX_DEADZONE && payload.left < XBOX_DEADZONE)
+                        payload.left = 0;
+                    if (payload.right > -XBOX_DEADZONE && payload.right < XBOX_DEADZONE)
+                        payload.right = 0;
+
+                    int bytes_written = CreateDrivePacket(buffer, 64, payload);
+                    this->SendPacketSerial(buffer, bytes_written);
+                    break;
+                }
 
             case DriveMode::Remote:
-			{
-				DrivePayload localPayload = this->latestDrivePayload;
+                {
+                    DrivePayload localPayload = this->latestDrivePayload;
 
-				// timeout: 2 seconds
-				if (difftime(time(nullptr), this->lastDrivePayloadReceivedTime) > 2)
-				{
-					localPayload.left = 0;
-					localPayload.right = 0;
-				}
+                    // timeout: 2 seconds
+                    if (difftime(time(nullptr), this->lastDrivePayloadReceivedTime) > 2)
+                    {
+                        localPayload.left = 0;
+                        localPayload.right = 0;
+                    }
 
-				int bytes_written = CreateDrivePacket(buffer, 64, localPayload);
-
-                int i = 0;
-                printf("Buffer to LaunchPad\n");
-                while (buffer[i] != 0x00) {
-                    printf("0x%X ", (uint8_t)buffer[i]);
-                    i++;
+                    int bytes_written = CreateDrivePacket(buffer, 64, localPayload);
+                    printf("L: %d R: %d\n", localPayload.left, localPayload.right);
+                    this->SendPacketSerial(buffer, bytes_written);
+                    break;
                 }
-                printf("\n");
-				this->SendPacketSerial(buffer, bytes_written);
-				break;
-			}
 
             case DriveMode::AI:
                 break;
+
+            default:
+                continue;
         }
     }
 } 
@@ -341,7 +332,7 @@ void BLER::QueryHeartbeatAI()
             std::this_thread::sleep_for(std::chrono::seconds(1));
             continue;
         }
-        
+
         // AI is probably dead, revert to remote control
         if (difftime(time(nullptr), this->lastAIHeartbeatReceivedTime) > AI_TIMEOUT_INTERVAL)
         {
@@ -356,26 +347,59 @@ void BLER::QueryHeartbeatAI()
     }
 }
 
+void BLER::CameraReadThread()
+{
+    while (this->isRunning)
+    {
+        cv::Mat img;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        camera >> img; 
+        if (!img.data)
+            continue;
+
+        cameraMutex.lock();
+        this->latestCameraFrame = img;
+        cameraMutex.unlock();
+    }
+}
+
 bool BLER::Run()
 {
-    if (!socket->Open() || !serialPort->Open())
+    if (!socket->Open())
+    {
+        std::cout << "Failed to open socket!" << std::endl;
         return false;
+    }
+
+    if (!serialPort->Open())
+    {
+        std::cout << "Failed to open serial port!" << std::endl;
+        return false;
+    }
 
     // initialize joystick //
-	if (!js.Initialize())
-		return false;
+    if (!js.Initialize())
+    {
+        std::cout << "Failed to initialize joysticks!" << std::endl;
+        return false;
+    }
 
     // initialize camera //
     if (!camera.open(0))
+    {
+        std::cout << "Failed to open camera!" << std::endl;
         return false;
+    }
 
     this->isRunning = true;
 
     // spin off threads //
-	serialReadThread = std::thread(&BLER::ReceivePacketsFromSerial, this);
-	udpReadThread = std::thread(&BLER::ReceivePacketsFromUdp, this);
-	executeThread = std::thread(&BLER::Execute, this);
+    serialReadThread = std::thread(&BLER::ReceivePacketsFromSerial, this);
+    udpReadThread = std::thread(&BLER::ReceivePacketsFromUdp, this);
+    executeThread = std::thread(&BLER::Execute, this);
     //aiHeartbeatThread = std::thread(&BLER::QueryHeartbeatAI, this);
+    cameraReadThread = std::thread(&BLER::CameraReadThread, this);
 
     // init successful //
     return true;
