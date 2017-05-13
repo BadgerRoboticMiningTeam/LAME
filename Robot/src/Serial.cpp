@@ -1,5 +1,4 @@
 #include "Serial.hpp"
-#include <stdexcept>
 
 using namespace LAME;
 

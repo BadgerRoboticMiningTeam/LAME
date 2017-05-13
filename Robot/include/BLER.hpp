@@ -1,14 +1,10 @@
 #pragma once
 
-#include <vector>
-#include <memory>
-#include <mutex>
-#include <thread>
 #include "Packet.h"
 #include "Serial.hpp"
 #include "UdpSocket.hpp"
+#include "AprilTagsLocator.hpp"
 #include <Xbox360Service.hpp>
-#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
