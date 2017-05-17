@@ -14,8 +14,8 @@ extern "C" {
 #define PKT_MIN_SIZE                                    4
 #define PKT_HDR_INDEX                                   0
 #define PKT_OP_INDEX                                    1
-#define PKT_PAYLOAD_SIZE_INDEX				2
-#define PKT_PAYLOAD_START_INDEX				3
+#define PKT_PAYLOAD_SIZE_INDEX                          2
+#define PKT_PAYLOAD_START_INDEX                         3
 
 // opcodes //
 #define DRIVE_OPCODE                                    0x99
