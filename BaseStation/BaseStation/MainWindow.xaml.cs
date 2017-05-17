@@ -97,7 +97,18 @@ namespace BaseStation
         void PacketReceiveCallback(IAsyncResult ar)
         {
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, 0);
-            byte[] buffer = packetSocket.EndReceive(ar, ref endpoint);
+            byte[] buffer = null;
+            try
+            {
+                buffer = packetSocket.EndReceive(ar, ref endpoint);
+            }
+            catch (SocketException)
+            {
+                logger.Write(LoggerLevel.Error, "Connection closed - Robot code is not running or has crashed!");
+                connectionThread.Abort();
+                return;
+            }
+            
             packetSocket.BeginReceive(PacketReceiveCallback, null);
 
             Opcode opcode = handler.GetPacketOpcode(buffer, buffer.Length);

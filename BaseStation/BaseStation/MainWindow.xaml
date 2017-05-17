@@ -69,7 +69,7 @@
                         </Viewbox>
 
                         <TextBox x:Name="robotIpTextBox" Grid.Column="1" Grid.Row="1" FontSize="14" VerticalContentAlignment="Center">
-                            192.168.1.2
+                            192.168.1.5
                         </TextBox>
                     </Grid>
                 </Border>
