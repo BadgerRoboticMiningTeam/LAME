@@ -94,7 +94,7 @@
                             </Label>
                         </Viewbox>
 
-                        <ComboBox x:Name="robotModeListBox" Grid.Column="1" Grid.Row="1"  VerticalContentAlignment="Center">
+                        <ComboBox x:Name="robotModeListBox" Grid.Column="1" Grid.Row="1"  VerticalContentAlignment="Center" SelectedIndex="0">
                             <ComboBoxItem>Remote Drive</ComboBoxItem>
                             <ComboBoxItem>AI</ComboBoxItem>
                         </ComboBox>
@@ -176,7 +176,8 @@
                 <Grid Grid.Row="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="4*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="3*"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -187,44 +188,86 @@
                         <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Label Grid.Column="0"
+                    <!-- Joystick info row 1 -->
+                    <Label Grid.Row="0" Grid.Column="0"
                                 FontWeight="Bold" FontSize="20"
                                 HorizontalContentAlignment="Center">
                         ID:
                     </Label>
 
-                    <TextBox Grid.Column="1"
-                                IsEnabled="False" HorizontalContentAlignment="Center"
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                                IsReadOnly="False" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
                                 x:Name="jsIdTextBox">
                         N/A
                     </TextBox>
 
-                    <Label Grid.Column="2"
+                    <Label Grid.Row="0" Grid.Column="2"
                                 FontWeight="Bold" FontSize="20"
                                 HorizontalContentAlignment="Center">
                         LY:
                     </Label>
 
-                    <TextBox Grid.Column="3"
-                                IsEnabled="False" HorizontalContentAlignment="Center"
+                    <TextBox Grid.Row="0" Grid.Column="3"
+                                IsReadOnly="False" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
                                 x:Name="leftYTextBox">
                         0
                     </TextBox>
 
-                    <Label Grid.Column="4"
+                    <Label Grid.Row="0" Grid.Column="4"
                                 FontWeight="Bold" FontSize="20"
                                 HorizontalContentAlignment="Center">
                         RY:
                     </Label>
 
-                    <TextBox Grid.Column="5"
-                                IsEnabled="False" HorizontalContentAlignment="Center"
+                    <TextBox Grid.Row="0" Grid.Column="5"
+                                IsReadOnly="False" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
                                 x:Name="rightYTextBox">
                         0
                     </TextBox>
+
+                    <!-- Second row of joystick info -->
+                    <Label Grid.Row="1" Grid.Column="0"
+                                FontWeight="Bold" FontSize="20"
+                                HorizontalContentAlignment="Center">
+                        LT:
+                    </Label>
+
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                                IsReadOnly="False" HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center" FontSize="20"
+                                x:Name="leftTriggerTextBox">
+                        0
+                    </TextBox>
+
+                    <Label Grid.Row="1" Grid.Column="2"
+                                FontWeight="Bold" FontSize="20"
+                                HorizontalContentAlignment="Center">
+                        RT:
+                    </Label>
+
+                    <TextBox Grid.Row="1" Grid.Column="3"
+                                IsReadOnly="False" HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center" FontSize="20"
+                                x:Name="rightTriggerTextBox">
+                        0
+                    </TextBox>
+
+                    <Label Grid.Row="1" Grid.Column="4"
+                                FontWeight="Bold" FontSize="20"
+                                HorizontalContentAlignment="Center">
+                        ⟳
+                    </Label>
+
+                    <TextBox Grid.Row="1" Grid.Column="5"
+                                IsReadOnly="False" HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center" FontSize="20"
+                                x:Name="scooperTextBox">
+                        OFF
+                    </TextBox>
+
                 </Grid>
             </Border>
         </Grid>

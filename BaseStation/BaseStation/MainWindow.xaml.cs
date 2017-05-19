@@ -1,18 +1,18 @@
 ﻿using System;
-using System.Threading;
-using System.Windows;
-
+using System.ComponentModel;
+using System.Drawing;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+using System.Timers;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Controls;
 
 using BaseStation.Packet;
 using JoystickLibrary;
-using System.Timers;
-using System.Windows.Media;
-using System.Windows.Controls;
-using System.ComponentModel;
-using System.IO;
-using System.Drawing;
+
 
 namespace BaseStation
 {
@@ -32,6 +32,7 @@ namespace BaseStation
         const int IMG_PORT = 11000;
         const double QUERY_HEARTBEAT_INTERVAL = 10e3;
         const int JS_DEADZONE = 15;
+        const int SCOOPER_SPEED = 50;
 
         Logger logger;
         UdpClient packetSocket;
@@ -312,7 +313,11 @@ namespace BaseStation
             int jsID = -1;
             int leftY = 0;
             int rightY = 0;
+            int leftTrigger = 0;
+            int rightTrigger = 0;
             bool enumerate_js = true;
+            bool scooper_active = false;
+            DateTime lastToggle = DateTime.Now;
 
             while (!windowClosing)
             {
@@ -335,6 +340,9 @@ namespace BaseStation
                 }
                 else
                 {
+                    bool a_pressed = false;
+                    int actuator_speed = 0;
+
                     if (!xboxService.GetJoystickIDs().Contains(jsID))
                     {
                         // return to enumerate state
@@ -349,24 +357,46 @@ namespace BaseStation
 
                     xboxService.GetLeftY(jsID, ref leftY);
                     xboxService.GetRightY(jsID, ref rightY);
+                    xboxService.GetLeftTrigger(jsID, ref leftTrigger);
+                    xboxService.GetRightTrigger(jsID, ref rightTrigger);
+                    xboxService.GetButton(jsID, Xbox360Button.A, ref a_pressed);
 
                     if (Math.Abs(leftY) < JS_DEADZONE)
                         leftY = 0;
                     if (Math.Abs(rightY) < JS_DEADZONE)
                         rightY = 0;
 
+                    if (a_pressed && (DateTime.Now - lastToggle).Milliseconds > 250)
+                    {
+                        scooper_active = !scooper_active;
+                        lastToggle = DateTime.Now;
+                    }
+
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
                         leftYTextBox.Text = leftY.ToString();
                         rightYTextBox.Text = rightY.ToString();
+                        leftTriggerTextBox.Text = leftTrigger.ToString();
+                        rightTriggerTextBox.Text = rightTrigger.ToString();
+                        scooperTextBox.Text = scooper_active ? "ON" : "OFF";
                     }));
 
                     if (!isConnected || currentDriveMode != DriveMode.Remote)
                         continue;
 
+                    if (leftTrigger != 0 && rightTrigger != 0)
+                        actuator_speed = 0;
+                    else if (leftTrigger != 0)
+                        actuator_speed = -leftTrigger;
+                    else if (rightTrigger != 0)
+                        actuator_speed = rightTrigger;
+
                     Drive speeds = new Drive();
                     speeds.left = leftY;
                     speeds.right = rightY;
+                    speeds.actuator = actuator_speed;
+                    speeds.scooper = scooper_active ? SCOOPER_SPEED : 0;
+
                     byte[] buffer = handler.GetDrivePacket(speeds);
                     packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
                 }
@@ -388,7 +418,8 @@ namespace BaseStation
 
                 logger.Write(LoggerLevel.Info, "Updating drive mode to " + currentDriveMode);
                 isConnected = false;
-                connectionThread.Start();
+
+                StartConnection();
                 return;
             }
 
@@ -409,15 +440,22 @@ namespace BaseStation
                 return;
             }
 
+            // start connection - if can't start, ignore 
+            if (StartConnection())
+                logger.Write(LoggerLevel.Info, "Starting connection sequence with BLER (" + addr + ") with drive mode: " + currentDriveMode);
+        }
+
+        bool StartConnection()
+        {
             if (connectionThread.IsAlive)
             {
                 logger.Write(LoggerLevel.Warning, "Already attempting to connect to BLER, ignoring additional press.");
-                return;
+                return false;
             }
 
-            logger.Write(LoggerLevel.Info, "Starting connection sequence with BLER (" + addr + ") with drive mode: " + currentDriveMode);
             connectionThread = new Thread(new ThreadStart(ConnectingWorker));
             connectionThread.Start();
+            return true;
         }
 
         void RequestImageClicked(object sender, RoutedEventArgs e)

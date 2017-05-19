@@ -148,7 +148,7 @@ static int ReadPacketHeader(uint8_t *buffer, uint8_t length, uint8_t *opcode, ui
         *opcode = buffer[PKT_OP_INDEX];
 
     if (payload_ptr)
-        *payload_ptr = (length == PKT_MIN_SIZE) ? 0 : buffer + PKT_PAYLOAD_START_INDEX;
+        *payload_ptr = (length == PKT_MIN_SIZE) ? NULL : buffer + PKT_PAYLOAD_START_INDEX;
     return length;
 }
 
@@ -209,16 +209,17 @@ static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayloa
 {
     if (length < PKT_MIN_SIZE + 4)
         return 0;
+
     buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
     buffer[PKT_OP_INDEX] = DRIVE_OPCODE;
-    buffer[PKT_PAYLOAD_SIZE_INDEX] = 2;
+    buffer[PKT_PAYLOAD_SIZE_INDEX] = 4;
     buffer[PKT_PAYLOAD_START_INDEX] = payload.left;
     buffer[PKT_PAYLOAD_START_INDEX + 1] = payload.right;
     buffer[PKT_PAYLOAD_START_INDEX + 2] = payload.actuator;
     buffer[PKT_PAYLOAD_START_INDEX + 3] = payload.scooper;
     buffer[PKT_PAYLOAD_START_INDEX + 4] = PKT_END_BYTE;
 
-    return encodeCOBS(buffer, PKT_MIN_SIZE + 2);
+    return encodeCOBS(buffer, PKT_MIN_SIZE + 4);
 }
 
 static int CreateReportLocationPacket(uint8_t *buffer, uint8_t length, struct LocationPayload payload)
@@ -285,6 +286,8 @@ static void ParseDrivePayload(uint8_t *payload, struct DrivePayload *drive)
 
     drive->left = payload[0];
     drive->right = payload[1];
+    drive->actuator = payload[2];
+    drive->scooper = payload[3];
 }
 
 static void ParseLocationPayload(uint8_t *payload, struct LocationPayload *loc)

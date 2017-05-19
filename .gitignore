@@ -3,6 +3,7 @@
 
 LAME
 *.a
+*.metagen
 
 JoystickLibrary/
 *.lib

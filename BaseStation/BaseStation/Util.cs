@@ -20,7 +20,6 @@ namespace BaseStation.Packet
                 return val;
         }
 
-
         public static BitmapImage ConvertBitmapToBitmapImage(Bitmap src)
         {
             MemoryStream ms = new MemoryStream();
