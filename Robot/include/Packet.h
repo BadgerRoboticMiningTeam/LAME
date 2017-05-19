@@ -46,6 +46,8 @@ struct DrivePayload
 {
     int8_t left;
     int8_t right;
+    int8_t actuator;
+    int8_t scooper;
 };
 
 struct LocationPayload
@@ -205,14 +207,16 @@ static int CreateQueryCameraImagePacket(uint8_t *buffer, uint8_t length)
 
 static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayload payload)
 {
-    if (length < PKT_MIN_SIZE + 2)
+    if (length < PKT_MIN_SIZE + 4)
         return 0;
     buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
     buffer[PKT_OP_INDEX] = DRIVE_OPCODE;
     buffer[PKT_PAYLOAD_SIZE_INDEX] = 2;
     buffer[PKT_PAYLOAD_START_INDEX] = payload.left;
     buffer[PKT_PAYLOAD_START_INDEX + 1] = payload.right;
-    buffer[PKT_PAYLOAD_START_INDEX + 2] = PKT_END_BYTE;
+    buffer[PKT_PAYLOAD_START_INDEX + 2] = payload.actuator;
+    buffer[PKT_PAYLOAD_START_INDEX + 3] = payload.scooper;
+    buffer[PKT_PAYLOAD_START_INDEX + 4] = PKT_END_BYTE;
 
     return encodeCOBS(buffer, PKT_MIN_SIZE + 2);
 }

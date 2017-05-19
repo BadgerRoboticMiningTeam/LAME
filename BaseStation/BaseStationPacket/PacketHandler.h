@@ -30,6 +30,8 @@ namespace BaseStation
     {
         System::Int32 left;
         System::Int32 right;
+        System::Int32 actuator;
+        System::Int32 scooper;
     };
 
     public ref struct Location

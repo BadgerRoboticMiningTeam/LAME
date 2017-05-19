@@ -53,6 +53,8 @@ array<System::Byte>^ BaseStation::PacketHandler::GetDrivePacket(Drive^ drive)
 
     payload.left = drive->left;
     payload.right = drive->right;
+    payload.actuator = drive->actuator;
+    payload.scooper = drive->scooper;
     int bytes_written = CreateDrivePacket(buffer, 128, payload);
 
     array<System::Byte>^ managed_buffer = gcnew array<System::Byte>(bytes_written);
