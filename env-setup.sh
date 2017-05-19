@@ -16,15 +16,16 @@ fi
 echo -e "\033[1;92m==== *nix Build Script for LAME ====\033[0m"
 
 # verify repo up to date
-git pull
+#git pull
 
 # get dependencies
 if [ -d "JoystickLibrary" ] && [ $force -eq 0 ]; then
     echo -e "\033[1;93mJoystickLibrary already exists, will not override. Use -f to override.\033[0m"
-    cd JoystickLibrary/ && git pull && cd ..
+    #cd JoystickLibrary/ && git pull && cd ..
 else
-    rm -rf JoystickLibrary/
-    git clone https://github.com/WisconsinRobotics/JoystickLibrary
+    cd JoystickLibrary/ && git clean -xdf && git reset --hard HEAD && cd ..
+    #rm -rf JoystickLibrary/
+    #git clone https://github.com/WisconsinRobotics/JoystickLibrary
 fi
 
 echo -e "\033[1;92m==== Building Dependencies ====\033[0m"
