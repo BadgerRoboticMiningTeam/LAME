@@ -63,7 +63,7 @@ IF /I [%1]==[] (
     pushd
     cd JoystickLibrary\csharp
     call %msbuild%\msbuild.exe JoystickLibrary.sln /t:Rebuild /p:Configuration=Debug /p:Platform=x64 /m
-    copy x64\Debug\JoystickLibrary.* ..\..\BaseStation
+    copy x64\Debug\* ..\..\BaseStation\*
     popd
     
     echo ==== Complete! ====

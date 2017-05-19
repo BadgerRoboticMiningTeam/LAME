@@ -214,7 +214,7 @@ static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayloa
 
     buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
     buffer[PKT_OP_INDEX] = DRIVE_OPCODE;
-    buffer[PKT_PAYLOAD_SIZE_INDEX] = 4;
+    buffer[PKT_PAYLOAD_SIZE_INDEX] = 5;
     buffer[PKT_PAYLOAD_START_INDEX] = payload.left;
     buffer[PKT_PAYLOAD_START_INDEX + 1] = payload.right;
     buffer[PKT_PAYLOAD_START_INDEX + 2] = payload.actuator;
@@ -222,7 +222,7 @@ static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayloa
     buffer[PKT_PAYLOAD_START_INDEX + 4] = payload.vibrator;
     buffer[PKT_PAYLOAD_START_INDEX + 5] = PKT_END_BYTE;
 
-    return encodeCOBS(buffer, PKT_MIN_SIZE + 4);
+    return encodeCOBS(buffer, PKT_MIN_SIZE + 5);
 }
 
 static int CreateReportLocationPacket(uint8_t *buffer, uint8_t length, struct LocationPayload payload)

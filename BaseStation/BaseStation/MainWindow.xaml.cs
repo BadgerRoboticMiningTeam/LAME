@@ -11,8 +11,7 @@ using System.Windows.Media;
 using System.Windows.Controls;
 
 using BaseStation.Packet;
-using JoystickLibrary;
-
+using JoystickLibrarySharp;
 
 namespace BaseStation
 {
@@ -65,8 +64,8 @@ namespace BaseStation
             lastHeartbeatReceived = DateTime.MinValue;
             receivedDriveModeAck = false;
 
-            xboxService = new Xbox360Service(1);
-            bool xbox_init_ok = xboxService.Initialize() && xboxService.Start();
+            xboxService = new Xbox360Service();
+            bool xbox_init_ok = xboxService.Initialize();
             if (!xbox_init_ok)
                 logger.Write(LoggerLevel.Warning, "Failed to initialize the Xbox360Service. Joysticks are inoperable for this session.");
 
@@ -325,11 +324,11 @@ namespace BaseStation
 
             while (!windowClosing)
             {
-                Thread.Sleep(25);
+                Thread.Sleep(100);
 
                 if (enumerate_js)
                 {
-                    var ids = xboxService.GetJoystickIDs();
+                    var ids = xboxService.GetIDs();
                     if (ids.Count < 1)
                         continue;
 
@@ -348,7 +347,7 @@ namespace BaseStation
                     bool x_pressed = false;
                     int actuator_speed = 0;
 
-                    if (!xboxService.GetJoystickIDs().Contains(jsID))
+                    if (!xboxService.GetIDs().Contains(jsID))
                     {
                         // return to enumerate state
                         enumerate_js = true;
@@ -402,6 +401,8 @@ namespace BaseStation
 
                     if (!isConnected || currentDriveMode != DriveMode.Remote)
                         continue;
+
+                    // TODO: cache last packet and do not send if no change //
 
                     Drive speeds = new Drive();
                     speeds.left = leftY;
@@ -484,7 +485,7 @@ namespace BaseStation
         void WindowClosing(object sender, CancelEventArgs e)
         {
             windowClosing = true;
-            xboxService.Stop();
+            xboxService.Dispose();
             imgListener.Stop();
             
             if (connectionThread.IsAlive)
