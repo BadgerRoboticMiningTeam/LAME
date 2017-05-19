@@ -232,26 +232,26 @@
                     <Label Grid.Row="1" Grid.Column="0"
                                 FontWeight="Bold" FontSize="20"
                                 HorizontalContentAlignment="Center">
-                        LT:
+                        Bin:
                     </Label>
 
                     <TextBox Grid.Row="1" Grid.Column="1"
                                 IsReadOnly="False" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
-                                x:Name="leftTriggerTextBox">
+                                x:Name="binTextBox">
                         0
                     </TextBox>
 
                     <Label Grid.Row="1" Grid.Column="2"
                                 FontWeight="Bold" FontSize="20"
                                 HorizontalContentAlignment="Center">
-                        RT:
+                        Vib:
                     </Label>
 
                     <TextBox Grid.Row="1" Grid.Column="3"
                                 IsReadOnly="False" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
-                                x:Name="rightTriggerTextBox">
+                                x:Name="vibratorTextBox">
                         0
                     </TextBox>
 
@@ -265,9 +265,8 @@
                                 IsReadOnly="False" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
                                 x:Name="scooperTextBox">
-                        OFF
+                        0
                     </TextBox>
-
                 </Grid>
             </Border>
         </Grid>

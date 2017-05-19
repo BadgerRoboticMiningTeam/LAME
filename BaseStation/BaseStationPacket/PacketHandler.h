@@ -32,6 +32,7 @@ namespace BaseStation
         System::Int32 right;
         System::Int32 actuator;
         System::Int32 scooper;
+        System::Int32 vibrator;
     };
 
     public ref struct Location

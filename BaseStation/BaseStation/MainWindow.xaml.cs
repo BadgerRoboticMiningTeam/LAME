@@ -32,7 +32,8 @@ namespace BaseStation
         const int IMG_PORT = 11000;
         const double QUERY_HEARTBEAT_INTERVAL = 10e3;
         const int JS_DEADZONE = 15;
-        const int SCOOPER_SPEED = 50;
+        const int SCOOPER_INC = 25;
+        const int VIB_INC = 25;
 
         Logger logger;
         UdpClient packetSocket;
@@ -316,8 +317,11 @@ namespace BaseStation
             int leftTrigger = 0;
             int rightTrigger = 0;
             bool enumerate_js = true;
-            bool scooper_active = false;
-            DateTime lastToggle = DateTime.Now;
+            int scooper_speed = 0;
+            int vibrator_speed = 0;
+
+            DateTime lastScooperToggle = DateTime.Now;
+            DateTime lastVibratorToggle = DateTime.Now;
 
             while (!windowClosing)
             {
@@ -341,6 +345,7 @@ namespace BaseStation
                 else
                 {
                     bool a_pressed = false;
+                    bool x_pressed = false;
                     int actuator_speed = 0;
 
                     if (!xboxService.GetJoystickIDs().Contains(jsID))
@@ -360,29 +365,12 @@ namespace BaseStation
                     xboxService.GetLeftTrigger(jsID, ref leftTrigger);
                     xboxService.GetRightTrigger(jsID, ref rightTrigger);
                     xboxService.GetButton(jsID, Xbox360Button.A, ref a_pressed);
+                    xboxService.GetButton(jsID, Xbox360Button.X, ref x_pressed);
 
                     if (Math.Abs(leftY) < JS_DEADZONE)
                         leftY = 0;
                     if (Math.Abs(rightY) < JS_DEADZONE)
                         rightY = 0;
-
-                    if (a_pressed && (DateTime.Now - lastToggle).Milliseconds > 250)
-                    {
-                        scooper_active = !scooper_active;
-                        lastToggle = DateTime.Now;
-                    }
-
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        leftYTextBox.Text = leftY.ToString();
-                        rightYTextBox.Text = rightY.ToString();
-                        leftTriggerTextBox.Text = leftTrigger.ToString();
-                        rightTriggerTextBox.Text = rightTrigger.ToString();
-                        scooperTextBox.Text = scooper_active ? "ON" : "OFF";
-                    }));
-
-                    if (!isConnected || currentDriveMode != DriveMode.Remote)
-                        continue;
 
                     if (leftTrigger != 0 && rightTrigger != 0)
                         actuator_speed = 0;
@@ -391,11 +379,36 @@ namespace BaseStation
                     else if (rightTrigger != 0)
                         actuator_speed = rightTrigger;
 
+                    if (a_pressed && (DateTime.Now - lastScooperToggle).Milliseconds > 250)
+                    {
+                        scooper_speed = (scooper_speed + SCOOPER_INC) % 100;
+                        lastScooperToggle = DateTime.Now;
+                    }
+
+                    if (x_pressed && (DateTime.Now - lastVibratorToggle).Milliseconds > 250)
+                    {
+                        vibrator_speed = (vibrator_speed + VIB_INC) % 100;
+                        lastVibratorToggle = DateTime.Now;
+                    }
+
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        leftYTextBox.Text = leftY.ToString();
+                        rightYTextBox.Text = rightY.ToString();
+                        binTextBox.Text = actuator_speed.ToString();
+                        scooperTextBox.Text = scooper_speed.ToString();
+                        vibratorTextBox.Text = vibrator_speed.ToString();
+                    }));
+
+                    if (!isConnected || currentDriveMode != DriveMode.Remote)
+                        continue;
+
                     Drive speeds = new Drive();
                     speeds.left = leftY;
                     speeds.right = rightY;
                     speeds.actuator = actuator_speed;
-                    speeds.scooper = scooper_active ? SCOOPER_SPEED : 0;
+                    speeds.scooper = scooper_speed;
+                    speeds.vibrator = vibrator_speed;
 
                     byte[] buffer = handler.GetDrivePacket(speeds);
                     packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);

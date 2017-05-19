@@ -47,6 +47,7 @@ array<System::Byte>^ BaseStation::PacketHandler::GetDrivePacket(Drive^ drive)
 {
     uint8_t buffer[128];
     DrivePayload payload;
+    int bytes_written;
 
     memset(buffer, 0, 128);
     memset(&payload, 0, sizeof(DrivePayload));
@@ -55,7 +56,9 @@ array<System::Byte>^ BaseStation::PacketHandler::GetDrivePacket(Drive^ drive)
     payload.right = drive->right;
     payload.actuator = drive->actuator;
     payload.scooper = drive->scooper;
-    int bytes_written = CreateDrivePacket(buffer, 128, payload);
+    payload.vibrator = drive->vibrator;
+
+    bytes_written = CreateDrivePacket(buffer, 128, payload);
 
     array<System::Byte>^ managed_buffer = gcnew array<System::Byte>(bytes_written);
     for (int i = 0; i < bytes_written; i++)

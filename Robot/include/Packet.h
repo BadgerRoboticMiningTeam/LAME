@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
 #include <stdint.h>
 
 #define __CLAMP(val, max, min) { if (val > max) val = max; if (val < min) val = min; }
@@ -46,6 +47,7 @@ struct DrivePayload
 {
     int8_t left;
     int8_t right;
+    int8_t vibrator;
     int8_t actuator;
     int8_t scooper;
 };
@@ -207,7 +209,7 @@ static int CreateQueryCameraImagePacket(uint8_t *buffer, uint8_t length)
 
 static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayload payload)
 {
-    if (length < PKT_MIN_SIZE + 4)
+    if (length < PKT_MIN_SIZE + 5)
         return 0;
 
     buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
@@ -217,7 +219,8 @@ static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayloa
     buffer[PKT_PAYLOAD_START_INDEX + 1] = payload.right;
     buffer[PKT_PAYLOAD_START_INDEX + 2] = payload.actuator;
     buffer[PKT_PAYLOAD_START_INDEX + 3] = payload.scooper;
-    buffer[PKT_PAYLOAD_START_INDEX + 4] = PKT_END_BYTE;
+    buffer[PKT_PAYLOAD_START_INDEX + 4] = payload.vibrator;
+    buffer[PKT_PAYLOAD_START_INDEX + 5] = PKT_END_BYTE;
 
     return encodeCOBS(buffer, PKT_MIN_SIZE + 4);
 }
@@ -288,6 +291,7 @@ static void ParseDrivePayload(uint8_t *payload, struct DrivePayload *drive)
     drive->right = payload[1];
     drive->actuator = payload[2];
     drive->scooper = payload[3];
+    drive->vibrator = payload[4];
 }
 
 static void ParseLocationPayload(uint8_t *payload, struct LocationPayload *loc)

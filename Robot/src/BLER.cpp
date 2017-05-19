@@ -300,7 +300,7 @@ void BLER::Execute()
                     }
 
                     int bytes_written = CreateDrivePacket(buffer, 64, localPayload);
-                    printf("L: %d R: %d\n", localPayload.left, localPayload.right);
+                    printf("L: %d R: %d Ac: %d V: %d S: %d \n", localPayload.left, localPayload.right, localPayload.actuator, localPayload.vibrator, localPayload.scooper);
                     this->SendPacketSerial(buffer, bytes_written);
                     break;
                 }
