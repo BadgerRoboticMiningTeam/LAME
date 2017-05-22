@@ -55,6 +55,9 @@ int main(int argc, char **argv)
     }
 
     std::cout << "Successfully initialized." << std::endl;
-    std::cin.get();
+    while (true)
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
     return 0;
 }
