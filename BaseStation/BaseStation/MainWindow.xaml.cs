@@ -29,7 +29,7 @@ namespace BaseStation
     {
         const int PKT_PORT = 10000;
         const int IMG_PORT = 11000;
-        const double QUERY_HEARTBEAT_INTERVAL = 10e3;
+        const double QUERY_HEARTBEAT_INTERVAL = 15e3;
         const int JS_DEADZONE = 15;
         const int SCOOPER_INC = 25;
         const int VIB_INC = 25;
