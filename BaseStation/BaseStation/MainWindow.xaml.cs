@@ -332,6 +332,7 @@ namespace BaseStation
 
             DateTime lastScooperToggle = DateTime.Now;
             DateTime lastVibratorToggle = DateTime.Now;
+            Drive lastPacket = new Drive();
 
             while (!windowClosing)
             {
@@ -413,8 +414,6 @@ namespace BaseStation
                     if (!isConnected || currentDriveMode != DriveMode.Remote)
                         continue;
 
-                    // TODO: cache last packet and do not send if no change //
-
                     Drive speeds = new Drive();
                     speeds.left = leftY;
                     speeds.right = rightY;
@@ -422,6 +421,12 @@ namespace BaseStation
                     speeds.scooper = scooper_speed;
                     speeds.vibrator = vibrator_speed;
 
+                    // no change? don't send another packet
+                    //if (lastPacket == speeds)
+                    //    continue;
+
+                    // update last packet, and send out
+                    lastPacket = speeds;
                     byte[] buffer = handler.GetDrivePacket(speeds);
                     packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
                 }

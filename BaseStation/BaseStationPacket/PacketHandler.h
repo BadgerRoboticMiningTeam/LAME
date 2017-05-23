@@ -33,6 +33,25 @@ namespace BaseStation
         System::Int32 actuator;
         System::Int32 scooper;
         System::Int32 vibrator;
+
+        virtual System::Boolean Equals(System::Object^ obj) override
+        {
+            if (obj->GetType() != this->GetType())
+                return false;
+            try
+            {
+                Drive^ other = safe_cast<Drive^>(obj);
+                return left == other->left &&
+                    right == other->right &&
+                    actuator == other->actuator &&
+                    scooper == other->scooper &&
+                    vibrator == other->vibrator;
+            }
+            catch (System::InvalidCastException^)
+            {
+                return false;
+            }
+        }
     };
 
     public ref struct Location
