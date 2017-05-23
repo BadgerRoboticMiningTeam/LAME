@@ -38,9 +38,6 @@ BLER::BLER(int base_port, int ai_port, std::string& serial_port) :
     this->aiConnected = false;
     this->currentMode = DriveMode::Direct;
     memset(&latestDrivePayload, 0, sizeof(DrivePayload));
-
-    // open the only camera - assumption //
-    this->camera.open(0);
 }
 
 BLER::~BLER()
@@ -189,55 +186,12 @@ void BLER::ReceivePacketsFromUdp()
                 break;
 
             case QUERY_CAMERA_IMAGE_OPCODE:
-                {
-                    cv::Mat img, filtered;
-                    std::vector<uchar> raw_compressed_data;
-                    struct sockaddr_in img_addr;
+                this->SendCameraImage(0);
+                break;
 
-                    // read a frame //
-                    cameraMutex.lock();
-                    img = this->latestCameraFrame;
-                    cameraMutex.unlock();
-
-                    // convert to grayscale, then compress it //
-                    cv::cvtColor(img, filtered, cv::COLOR_BGR2GRAY);
-                    if (!cv::imencode(".jpg", filtered, raw_compressed_data, params))
-                    {
-                        std::cout << "Failed to encode camera data!" << std::endl;
-                        break;
-                    }
-
-                    // send to base station //
-                    std::unique_ptr<TcpClient> tcpClient(new TcpClient());
-                    if (!tcpClient->Open())
-                    {
-                        std::cout << "Failed to open TCP port for image send!" << std::endl;
-                        break;
-                    }
-
-                    // set up image port address //
-                    img_addr = this->baseStationAddr;
-                    img_addr.sin_port = htons(BASE_IMAGE_PORT);
-                    if (!tcpClient->Connect(img_addr))
-                    {
-                        std::cout << "Failed to connect to base station image port?" << std::endl;
-                        break;
-                    }
-
-                    // send header //
-                    auto size = raw_compressed_data.size();
-                    uint8_t firstPkt[] = { 0xAA, 0, 0, 0, 0, 0x7F };
-                    firstPkt[1] = (uint8_t)(size >> 24);
-                    firstPkt[2] = (uint8_t)(size >> 16);
-                    firstPkt[3] = (uint8_t)(size >> 8);
-                    firstPkt[4] = (uint8_t)size;
-                    tcpClient->Write(firstPkt, 6);
-
-                    // send data //
-                    tcpClient->Write(&raw_compressed_data[0], static_cast<unsigned int>(size));
-                    std::cout << "Sent an image back to base station!" << std::endl;
-                    break;
-                }
+            case QUERY_CAMERA1_IMAGE_OPCODE:
+                this->SendCameraImage(1);
+                break;
 
             case DRIVE_OPCODE:
                 DrivePayload localPayload;
@@ -252,6 +206,59 @@ void BLER::ReceivePacketsFromUdp()
 
         memset(read_buffer, 0, READ_BUFFER_SIZE);
     }
+}
+
+void BLER::SendCameraImage(int id)
+{
+    cv::Mat img, filtered;
+    std::vector<uchar> raw_compressed_data;
+    struct sockaddr_in img_addr;
+
+    // read a frame //
+    cameraMutex.lock();
+    if (id == 0)
+        img = this->latestCameraFrame;
+    else
+        img = this->latestCamera1Frame;
+    cameraMutex.unlock();
+
+    // convert to grayscale, then compress it //
+    cv::cvtColor(img, filtered, cv::COLOR_BGR2GRAY);
+    if (!cv::imencode(".jpg", filtered, raw_compressed_data, params))
+    {
+        std::cout << "Failed to encode camera data!" << std::endl;
+        return;
+    }
+
+    // send to base station //
+    std::unique_ptr<TcpClient> tcpClient(new TcpClient());
+    if (!tcpClient->Open())
+    {
+        std::cout << "Failed to open TCP port for image send!" << std::endl;
+        return;
+    }
+
+    // set up image port address //
+    img_addr = this->baseStationAddr;
+    img_addr.sin_port = htons(BASE_IMAGE_PORT);
+    if (!tcpClient->Connect(img_addr))
+    {
+        std::cout << "Failed to connect to base station image port?" << std::endl;
+        return;
+    }
+
+    // send header //
+    auto size = raw_compressed_data.size();
+    uint8_t firstPkt[] = { 0xAA, 0, 0, 0, 0, (uint8_t)id, 0x7F };
+    firstPkt[1] = (uint8_t)(size >> 24);
+    firstPkt[2] = (uint8_t)(size >> 16);
+    firstPkt[3] = (uint8_t)(size >> 8);
+    firstPkt[4] = (uint8_t)size;
+    tcpClient->Write(firstPkt, 7);
+
+    // send data //
+    tcpClient->Write(&raw_compressed_data[0], static_cast<unsigned int>(size));
+    std::cout << "Sent an image back to base station!" << std::endl;
 }
 
 void BLER::Execute()
@@ -351,15 +358,20 @@ void BLER::CameraReadThread()
 {
     while (this->isRunning)
     {
-        cv::Mat img;
+        cv::Mat img, img1;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         camera >> img; 
-        if (!img.data)
+        camera1 >> img1;
+
+        if (!img.data && !img1.data)
             continue;
 
         cameraMutex.lock();
-        this->latestCameraFrame = img;
+        if (img.data)
+            this->latestCameraFrame = img;
+        if (img1.data)
+            this->latestCamera1Frame = img1;
         cameraMutex.unlock();
     }
 }
@@ -385,10 +397,16 @@ bool BLER::Run()
         return false;
     }
 
-    // initialize camera //
+    // initialize cameras //
     if (!camera.open(0))
     {
-        std::cout << "Failed to open camera!" << std::endl;
+        std::cout << "Failed to open camera 0!" << std::endl;
+        return false;
+    }
+
+    if (!camera1.open(1))
+    {
+        std::cout << "Failed to open camera 1!" << std::endl;
         return false;
     }
 
@@ -398,7 +416,6 @@ bool BLER::Run()
     serialReadThread = std::thread(&BLER::ReceivePacketsFromSerial, this);
     udpReadThread = std::thread(&BLER::ReceivePacketsFromUdp, this);
     executeThread = std::thread(&BLER::Execute, this);
-    //aiHeartbeatThread = std::thread(&BLER::QueryHeartbeatAI, this);
     cameraReadThread = std::thread(&BLER::CameraReadThread, this);
 
     // init successful //

@@ -167,15 +167,19 @@ namespace BaseStation
 
                 NetworkStream stream = client.GetStream();
                 logger.Write(LoggerLevel.Info, "Image is incoming!");
+
                 // read img size from connection
+                
                 byte[] hdr_pkt = new byte[16];
                 int bytes = stream.Read(hdr_pkt, 0, 16);
-                if (hdr_pkt[0] == 0xAA && hdr_pkt[5] == 0x7F)
+                if (hdr_pkt[0] == 0xAA && hdr_pkt[6] == 0x7F)
                     size = (hdr_pkt[1] << 24) | (hdr_pkt[2] << 16) | (hdr_pkt[3] << 8) | hdr_pkt[4];
                 else
                     size = 32768;
 
-                logger.Write(LoggerLevel.Info, "Image is inbound from BLER!");
+                int img_id = hdr_pkt[5];
+
+                logger.Write(LoggerLevel.Info, string.Format("Image ({0}) is inbound from BLER!", img_id));
 
                 // read the data - credit to Jon Skeet
                 int read = 0;
@@ -225,7 +229,10 @@ namespace BaseStation
                 // now, display the image
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    cameraImage.Source = Util.ConvertBitmapToBitmapImage(bmpImage);
+                    if (img_id == 0)
+                        cameraImage.Source = Util.ConvertBitmapToBitmapImage(bmpImage);
+                    else
+                        camera1Image.Source = Util.ConvertBitmapToBitmapImage(bmpImage);
                 }));
 
                 if (currentImgStream != null)
@@ -295,7 +302,11 @@ namespace BaseStation
                         isConnected = true;
                         done = true;
                         SetRobotConnection(true);
-                        Dispatcher.BeginInvoke(new Action(() => { requestCameraButton.IsEnabled = true; }));
+                        Dispatcher.BeginInvoke(new Action(() => 
+                        {
+                            requestCameraButton.IsEnabled = true;
+                            requestCamera1Button.IsEnabled = true;
+                        }));
                     }
                 }
                 else
@@ -477,8 +488,18 @@ namespace BaseStation
             if (!isConnected)
                 return;
 
-            logger.Write(LoggerLevel.Info, "Requesting image from BLER...");
+            logger.Write(LoggerLevel.Info, "Requesting image (0) from BLER...");
             byte[] buffer = handler.GetQueryCameraImagePacket();
+            packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
+        }
+
+        void RequestImage1Clicked(object sender, RoutedEventArgs e)
+        {
+            if (!isConnected)
+                return;
+
+            logger.Write(LoggerLevel.Info, "Requesting image (1) from BLER...");
+            byte[] buffer = handler.GetQueryCamera1ImagePacket();
             packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
         }
 

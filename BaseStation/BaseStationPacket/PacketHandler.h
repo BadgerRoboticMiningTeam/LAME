@@ -63,6 +63,7 @@ namespace BaseStation
         array<System::Byte>^ GetQueryLocationPacket();
         array<System::Byte>^ GetQueryEncoderPacket();
         array<System::Byte>^ GetQueryCameraImagePacket();
+        array<System::Byte>^ GetQueryCamera1ImagePacket();
         array<System::Byte>^ GetDrivePacket(Drive^ drive);
 
         Opcode GetPacketOpcode(array<System::Byte>^ buffer, System::Int32 length);

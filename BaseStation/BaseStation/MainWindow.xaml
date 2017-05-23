@@ -21,7 +21,8 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="0.5*"/>
-                    <RowDefinition Height="4.5*"/>
+                    <RowDefinition Height="0.5*"/>
+                    <RowDefinition Height="4*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
@@ -101,19 +102,26 @@
                     </Grid>
                 </Border>
 
-                <!-- request camera image block -->
+                <!-- request camera 1 image block -->
                 <Border Grid.Row="3" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <Button x:Name="requestCameraButton" IsEnabled="False" FontSize="16" Click="RequestImageClicked" Background="Goldenrod">
-                        Request Camera Image
+                        Request Camera 1 Image
+                    </Button>
+                </Border>
+
+                <!-- request camera 2 image block -->
+                <Border Grid.Row="4" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <Button x:Name="requestCamera1Button" IsEnabled="False" FontSize="16" Click="RequestImage1Clicked" Background="Goldenrod">
+                        Request Camera 2 Image
                     </Button>
                 </Border>
 
                 <!-- ???? block -->
-                <Border Grid.Row="4" BorderBrush="Black" BorderThickness="0 0 0 1" Background="LightGray">
+                <Border Grid.Row="5" BorderBrush="Black" BorderThickness="0 0 0 1" Background="LightGray">
                 </Border>
 
                 <!-- "Go" button -->
-                <Border Grid.Row="5" BorderBrush="Black" BorderThickness="0 0 0 1">
+                <Border Grid.Row="6" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <Button Background="Green" Foreground="White"
                             FontSize="24"  x:Name="goButton" Click="GoButtonClicked">
                         Start
@@ -121,7 +129,7 @@
                 </Border>
 
                 <!-- e-stop -->
-                <Grid Grid.Row="6">
+                <Grid Grid.Row="7">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -142,7 +150,7 @@
             </Grid>
         </Border>
 
-        <!-- Camera & Logger -->
+        <!-- Camera 1 & Logger -->
         <Border Grid.Column="1" BorderThickness="0 0 1 0" BorderBrush="Black">
             <Grid>
                 <Grid.RowDefinitions>
@@ -158,20 +166,17 @@
             </Grid>
         </Border>
 
-        <!-- Arena Overlay & Metrics -->
+        <!-- Camera 2 and Joystick -->
         <Grid Grid.Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="2*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Canvas x:Name="arenaOverlayCanvas" Grid.Row="0">
-                <Canvas.Background>
-                    <ImageBrush ImageSource="arena.png" Stretch="Uniform"/>
-                </Canvas.Background>
-            </Canvas>
-
-            <!-- Metrics -->
+            <!-- Camera 2 -->
+            <Image Grid.Row="0" x:Name="camera1Image" Stretch="Fill"/>
+            
+            <!-- Joystick -->
             <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1 1 0 0 ">
                 <Grid Grid.Row="0">
                     <Grid.RowDefinitions>

@@ -36,6 +36,7 @@ namespace LAME
             void Execute();
             void QueryHeartbeatAI();
             void CameraReadThread();
+            void SendCameraImage(int id);
 
             bool isRunning;
             bool aiConnected;
@@ -54,8 +55,13 @@ namespace LAME
             std::thread cameraReadThread;
             std::mutex cameraMutex;
 
+            // camera 1 //
             cv::VideoCapture camera;
             cv::Mat latestCameraFrame;
+
+            // camera 2 //
+            cv::VideoCapture camera1;
+            cv::Mat latestCamera1Frame;
 
             // packet payload structs //
             DrivePayload latestDrivePayload;

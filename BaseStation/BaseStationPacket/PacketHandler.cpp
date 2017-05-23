@@ -43,6 +43,11 @@ array<System::Byte>^ BaseStation::PacketHandler::GetQueryCameraImagePacket()
     return this->GetNoPayloadPacket(&CreateQueryCameraImagePacket);
 }
 
+array<System::Byte>^ BaseStation::PacketHandler::GetQueryCamera1ImagePacket()
+{
+    return this->GetNoPayloadPacket(&CreateQueryCamera1ImagePacket);
+}
+
 array<System::Byte>^ BaseStation::PacketHandler::GetDrivePacket(Drive^ drive)
 {
     uint8_t buffer[128];

@@ -35,6 +35,7 @@ extern "C" {
 #define REPORT_ENCODER_OPCODE                           0x47
 
 #define QUERY_CAMERA_IMAGE_OPCODE                       0x13
+#define QUERY_CAMERA1_IMAGE_OPCODE                      0x15
 
 #define QUERY_HEARTBEAT_OPCODE                          0x14
 #define REPORT_HEARTBEAT_OPCODE                         0x44
@@ -205,6 +206,11 @@ static int CreateQueryEncoderPacket(uint8_t *buffer, uint8_t length)
 static int CreateQueryCameraImagePacket(uint8_t *buffer, uint8_t length)
 {
     return CreateNoPayloadPacket(buffer, length, QUERY_CAMERA_IMAGE_OPCODE);
+}
+
+static int CreateQueryCamera1ImagePacket(uint8_t *buffer, uint8_t length)
+{
+    return CreateNoPayloadPacket(buffer, length, QUERY_CAMERA1_IMAGE_OPCODE);
 }
 
 static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayload payload)
