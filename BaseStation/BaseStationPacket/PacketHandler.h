@@ -19,11 +19,14 @@ namespace BaseStation
         SET_TARGET_LOCATION = SET_TARGET_LOCATION_OPCODE,
         QUERY_ENCODER = QUERY_ENCODER_OPCODE,
         REPORT_ENCODER = REPORT_ENCODER_OPCODE,
+        ENABLE_ENCODER = ENABLE_ENCODER_OPCODE,
+        DISABLE_ENCODER = DISABLE_ENCODER_OPCODE,
         QUERY_CAMERA_IMAGE = QUERY_CAMERA_IMAGE_OPCODE,
         QUERY_HEARTBEAT = QUERY_HEARTBEAT_OPCODE,
         REPORT_HEARTBEAT = REPORT_HEARTBEAT_OPCODE,
         ESTOP = ESTOP_OPCODE,
         CLEAR_ESTOP = CLEAR_ESTOP_OPCODE,
+        SET_CAMERA_QUALITY = SET_CAMERA_QUALITY_OPCODE
     };
 
     public ref struct Drive
@@ -71,6 +74,11 @@ namespace BaseStation
         System::Int32 right_actuator;
     };
 
+    public ref struct CameraQuality
+    {
+        System::Int32 quality;
+    };
+
     public ref class PacketHandler
     {
     public:
@@ -84,6 +92,9 @@ namespace BaseStation
         array<System::Byte>^ GetQueryCameraImagePacket();
         array<System::Byte>^ GetQueryCamera1ImagePacket();
         array<System::Byte>^ GetDrivePacket(Drive^ drive);
+        array<System::Byte>^ GetEnableEncoderPacket();
+        array<System::Byte>^ GetDisableEncoderPacket();
+        array<System::Byte>^ GetSetCameraQualityPacket(CameraQuality^ cq);
 
         Opcode GetPacketOpcode(array<System::Byte>^ buffer, System::Int32 length);
         System::Boolean ParseReportHeartbeatPacket(array<System::Byte>^ buffer, System::Int32 length);

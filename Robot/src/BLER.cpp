@@ -13,7 +13,7 @@ constexpr int XBOX_DEADZONE = 20;
 constexpr int BASE_IMAGE_PORT = 11000;
 constexpr int BAUD_RATE = 9600;
 
-const std::vector<int> params = {
+std::vector<int> params = {
     CV_IMWRITE_JPEG_QUALITY,
     5
 };
@@ -193,6 +193,13 @@ void BLER::ReceivePacketsFromUdp()
                 this->SendCameraImage(1);
                 break;
 
+            case SET_CAMERA_QUALITY_OPCODE:
+                CameraQualityPayload localCamPayload;
+                ParseQualityPayload(payload, &localCamPayload);
+                params[1] = localCamPayload.quality > 100 ? 100 : localCamPayload.quality;
+                std::cout << "Setting quality to " << params[1] << std::endl;
+                break;
+
             case DRIVE_OPCODE:
                 DrivePayload localPayload;
                 ParseDrivePayload(payload, &localPayload);
@@ -221,6 +228,9 @@ void BLER::SendCameraImage(int id)
     else
         img = this->latestCamera1Frame;
     cameraMutex.unlock();
+
+    if (!img.data)
+        return;
 
     // convert to grayscale, then compress it //
     cv::cvtColor(img, filtered, cv::COLOR_BGR2GRAY);
@@ -361,8 +371,10 @@ void BLER::CameraReadThread()
         cv::Mat img, img1;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-        camera >> img; 
-        camera1 >> img1;
+        if (camera.isOpened())
+            camera >> img; 
+        if (camera1.isOpened())
+            camera1 >> img1;
 
         if (!img.data && !img1.data)
             continue;
@@ -373,6 +385,16 @@ void BLER::CameraReadThread()
         if (img1.data)
             this->latestCamera1Frame = img1;
         cameraMutex.unlock();
+    }
+}
+
+void BLER::CameraSendThread()
+{
+    while (this->isRunning)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        this->SendCameraImage(0);
+        this->SendCameraImage(1);
     }
 }
 
@@ -401,13 +423,13 @@ bool BLER::Run()
     if (!camera.open(0))
     {
         std::cout << "Failed to open camera 0!" << std::endl;
-        return false;
+        //return false;
     }
 
     if (!camera1.open(1))
     {
         std::cout << "Failed to open camera 1!" << std::endl;
-        return false;
+        //return false;
     }
 
     this->isRunning = true;
@@ -417,6 +439,7 @@ bool BLER::Run()
     udpReadThread = std::thread(&BLER::ReceivePacketsFromUdp, this);
     executeThread = std::thread(&BLER::Execute, this);
     cameraReadThread = std::thread(&BLER::CameraReadThread, this);
+    cameraSendThread = std::thread(&BLER::CameraSendThread, this);
 
     // init successful //
     return true;

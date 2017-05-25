@@ -33,15 +33,19 @@ extern "C" {
 
 #define QUERY_ENCODER_OPCODE                            0x50
 #define REPORT_ENCODER_OPCODE                           0x47
+#define ENABLE_ENCODER_OPCODE                           0x4A
+#define DISABLE_ENCODER_OPCODE                          0x4B
 
 #define QUERY_CAMERA_IMAGE_OPCODE                       0x13
 #define QUERY_CAMERA1_IMAGE_OPCODE                      0x15
+#define SET_CAMERA_QUALITY_OPCODE                       0x16
 
 #define QUERY_HEARTBEAT_OPCODE                          0x14
 #define REPORT_HEARTBEAT_OPCODE                         0x44
 
 #define ESTOP_OPCODE                                    0xAA
 #define CLEAR_ESTOP_OPCODE                              0xAB
+
 
 // payload structs //
 struct DrivePayload
@@ -68,6 +72,11 @@ struct EncoderPayload
     int16_t back_right;
     int16_t left_actuator;
     int16_t right_actuator;
+};
+
+struct CameraQualityPayload
+{
+    uint8_t quality;
 };
 
 // functions //
@@ -203,6 +212,16 @@ static int CreateQueryEncoderPacket(uint8_t *buffer, uint8_t length)
     return CreateNoPayloadPacket(buffer, length, QUERY_ENCODER_OPCODE);
 }
 
+static int CreateEnableEncoderPacket(uint8_t *buffer, uint8_t length)
+{
+    return CreateNoPayloadPacket(buffer, length, ENABLE_ENCODER_OPCODE);
+}
+
+static int CreateDisableEncoderPacket(uint8_t *buffer, uint8_t length)
+{
+    return CreateNoPayloadPacket(buffer, length, DISABLE_ENCODER_OPCODE);
+}
+
 static int CreateQueryCameraImagePacket(uint8_t *buffer, uint8_t length)
 {
     return CreateNoPayloadPacket(buffer, length, QUERY_CAMERA_IMAGE_OPCODE);
@@ -229,6 +248,20 @@ static int CreateDrivePacket(uint8_t *buffer, uint8_t length, struct DrivePayloa
     buffer[PKT_PAYLOAD_START_INDEX + 5] = PKT_END_BYTE;
 
     return encodeCOBS(buffer, PKT_MIN_SIZE + 5);
+}
+
+static int CreateSetQualityCameraPacket(uint8_t *buffer, uint8_t length, struct CameraQualityPayload payload)
+{
+    if (length < PKT_MIN_SIZE + 1)
+        return 0;
+
+    buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
+    buffer[PKT_OP_INDEX] = SET_CAMERA_QUALITY_OPCODE;
+    buffer[PKT_PAYLOAD_SIZE_INDEX] = 5;
+    buffer[PKT_PAYLOAD_START_INDEX] = payload.quality;
+    buffer[PKT_PAYLOAD_START_INDEX + 1] = PKT_END_BYTE;
+
+    return encodeCOBS(buffer, PKT_MIN_SIZE + 1);
 }
 
 static int CreateReportLocationPacket(uint8_t *buffer, uint8_t length, struct LocationPayload payload)
@@ -321,6 +354,14 @@ static void ParseEncoderPayload(uint8_t *payload, struct EncoderPayload *enc)
     enc->back_right = (payload[6] << 8) | payload[7];
     enc->left_actuator = (payload[8] << 8) | payload[9];
     enc->right_actuator = (payload[10] << 8) | payload[11];
+}
+
+static void ParseQualityPayload(uint8_t *payload, struct CameraQualityPayload *cam)
+{
+    if (!payload || !cam)
+        return;
+
+    cam->quality = payload[0];
 }
 
 #ifdef _cplusplus

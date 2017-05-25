@@ -37,6 +37,7 @@ namespace LAME
             void QueryHeartbeatAI();
             void CameraReadThread();
             void SendCameraImage(int id);
+            void CameraSendThread();
 
             bool isRunning;
             bool aiConnected;
@@ -53,6 +54,7 @@ namespace LAME
             std::thread executeThread;
             std::thread aiHeartbeatThread;
             std::thread cameraReadThread;
+            std::thread cameraSendThread;
             std::mutex cameraMutex;
 
             // camera 1 //

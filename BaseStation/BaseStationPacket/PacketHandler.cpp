@@ -3,6 +3,16 @@
 
 using namespace BaseStation;
 
+static System::Int32 _clamp(System::Int32 val, System::Int32 max, System::Int32 min)
+{
+    if (val > max)
+        return max;
+    if (val < min)
+        return min;
+
+    return val;
+}
+
 
 PacketHandler::PacketHandler()
 {
@@ -48,6 +58,16 @@ array<System::Byte>^ BaseStation::PacketHandler::GetQueryCamera1ImagePacket()
     return this->GetNoPayloadPacket(&CreateQueryCamera1ImagePacket);
 }
 
+array<System::Byte>^ BaseStation::PacketHandler::GetEnableEncoderPacket()
+{
+    return this->GetNoPayloadPacket(&CreateEnableEncoderPacket);
+}
+
+array<System::Byte>^ BaseStation::PacketHandler::GetDisableEncoderPacket()
+{
+    return this->GetNoPayloadPacket(&CreateDisableEncoderPacket);
+}
+
 array<System::Byte>^ BaseStation::PacketHandler::GetDrivePacket(Drive^ drive)
 {
     uint8_t buffer[128];
@@ -64,6 +84,25 @@ array<System::Byte>^ BaseStation::PacketHandler::GetDrivePacket(Drive^ drive)
     payload.vibrator = drive->vibrator;
 
     bytes_written = CreateDrivePacket(buffer, 128, payload);
+
+    array<System::Byte>^ managed_buffer = gcnew array<System::Byte>(bytes_written);
+    for (int i = 0; i < bytes_written; i++)
+        managed_buffer[i] = buffer[i];
+    return managed_buffer;
+}
+
+array<System::Byte>^ BaseStation::PacketHandler::GetSetCameraQualityPacket(CameraQuality^ cq)
+{
+    uint8_t buffer[128];
+    CameraQualityPayload payload;
+    int bytes_written;
+
+    memset(buffer, 0, 128);
+    memset(&payload, 0, sizeof(CameraQualityPayload));
+
+    payload.quality = (uint8_t)_clamp(cq->quality, 100, 0);
+
+    bytes_written = CreateSetQualityCameraPacket(buffer, 128, payload);
 
     array<System::Byte>^ managed_buffer = gcnew array<System::Byte>(bytes_written);
     for (int i = 0; i < bytes_written; i++)

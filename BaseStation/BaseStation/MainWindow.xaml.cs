@@ -93,6 +93,8 @@ namespace BaseStation
             joystickReadThread = new Thread(ReadJoystickValues);
             joystickReadThread.IsBackground = true;
             joystickReadThread.Start();
+
+            qualitySlider.Value = 5; // default
         }
 
         #region Threads & Callbacks
@@ -230,10 +232,18 @@ namespace BaseStation
                 // now, display the image
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    if (img_id == 0)
-                        cameraImage.Source = Util.ConvertBitmapToBitmapImage(bmpImage);
-                    else
-                        camera1Image.Source = Util.ConvertBitmapToBitmapImage(bmpImage);
+                    try
+                    {
+                        if (img_id == 0)
+                            cameraImage.Source = Util.ConvertBitmapToBitmapImage(bmpImage);
+                        else
+                            camera1Image.Source = Util.ConvertBitmapToBitmapImage(bmpImage);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.Write(LoggerLevel.Error, "Exception thrown when attempting to display image.");
+                        logger.Write(LoggerLevel.Error, e.ToString());
+                    }
                 }));
 
                 if (currentImgStream != null)
@@ -533,6 +543,38 @@ namespace BaseStation
 
             if (joystickReadThread.IsAlive)
                 joystickReadThread.Join();
+        }
+
+
+        void QualityValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!isConnected)
+                return;
+
+            CameraQuality cq = new CameraQuality();
+            cq.quality = (int)qualitySlider.Value;
+            logger.Write(LoggerLevel.Info, "Setting quality to " + cq.quality);
+
+            byte[] buffer = handler.GetSetCameraQualityPacket(cq);
+            packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
+        }
+
+        void EnableEncoderCheckBoxChanged(object sender, RoutedEventArgs e)
+        {
+            if (!isConnected)
+                return;
+
+            bool? enc_enable = enableEncoderCheckBox.IsChecked;
+            if (!enc_enable.HasValue) // should not happen, not a tristate
+                return;
+
+            if (enc_enable.Value)
+                logger.Write(LoggerLevel.Info, "Enabling encoder drive...");
+            else
+                logger.Write(LoggerLevel.Info, "Disabling encoder drive...");
+
+            byte[] buffer = enc_enable.Value ? handler.GetEnableEncoderPacket() : handler.GetDisableEncoderPacket();
+            packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
         }
         #endregion
 

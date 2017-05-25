@@ -20,9 +20,11 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
                     <RowDefinition Height="0.5*"/>
                     <RowDefinition Height="0.5*"/>
-                    <RowDefinition Height="4*"/>
+                    <RowDefinition Height="0.5*"/>
+                    <RowDefinition Height="2.5*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
@@ -102,26 +104,43 @@
                     </Grid>
                 </Border>
 
-                <!-- request camera 1 image block -->
+                <!-- Quality setter -->
                 <Border Grid.Row="3" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <DockPanel VerticalAlignment="Center">
+                        <TextBox Text="{Binding ElementName=qualitySlider, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Center" Width="40" />
+                        <Slider Maximum="100" TickPlacement="BottomRight" TickFrequency="5" IsSnapToTickEnabled="True" Name="qualitySlider" ValueChanged="QualityValueChanged"/>
+                    </DockPanel>
+                </Border>
+                
+                <!-- request camera 1 image block -->
+                <Border Grid.Row="4" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <Button x:Name="requestCameraButton" IsEnabled="False" FontSize="16" Click="RequestImageClicked" Background="Goldenrod">
                         Request Camera 1 Image
                     </Button>
                 </Border>
 
                 <!-- request camera 2 image block -->
-                <Border Grid.Row="4" BorderBrush="Black" BorderThickness="0 0 0 1">
+                <Border Grid.Row="5" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <Button x:Name="requestCamera1Button" IsEnabled="False" FontSize="16" Click="RequestImage1Clicked" Background="Goldenrod">
                         Request Camera 2 Image
                     </Button>
                 </Border>
 
+                <!-- Enable/Disable Encoder block -->
+                <Border Grid.Row="6" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <CheckBox x:Name="enableEncoderCheckBox" FontSize="14"
+                        HorizontalAlignment="Center" VerticalAlignment="Center" 
+                        Checked="EnableEncoderCheckBoxChanged"
+                        >Enable Encoder Drive
+                    </CheckBox>
+                </Border>
+
                 <!-- ???? block -->
-                <Border Grid.Row="5" BorderBrush="Black" BorderThickness="0 0 0 1" Background="LightGray">
+                <Border Grid.Row="7" BorderBrush="Black" BorderThickness="0 0 0 1" Background="LightGray">
                 </Border>
 
                 <!-- "Go" button -->
-                <Border Grid.Row="6" BorderBrush="Black" BorderThickness="0 0 0 1">
+                <Border Grid.Row="8" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <Button Background="Green" Foreground="White"
                             FontSize="24"  x:Name="goButton" Click="GoButtonClicked">
                         Start
@@ -129,7 +148,7 @@
                 </Border>
 
                 <!-- e-stop -->
-                <Grid Grid.Row="7">
+                <Grid Grid.Row="9">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
