@@ -207,6 +207,16 @@ void BLER::ReceivePacketsFromUdp()
                 this->lastDrivePayloadReceivedTime = time(nullptr);
                 break;
 
+            case ENABLE_ENCODER_OPCODE:
+                std::cout << "Enabling encoder-assisted drive!" << std::endl;
+                this->SendPacketSerial(read_buffer, bytes_read);
+                break;
+
+            case DISABLE_ENCODER_OPCODE:
+                std::cout << "Disabling encoder-assisted drive!" << std::endl;
+                this->SendPacketSerial(read_buffer, bytes_read);
+                break;
+
             default:
                 continue;
         }

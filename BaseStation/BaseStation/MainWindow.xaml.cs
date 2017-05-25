@@ -241,8 +241,7 @@ namespace BaseStation
                     }
                     catch (Exception e)
                     {
-                        logger.Write(LoggerLevel.Error, "Exception thrown when attempting to display image.");
-                        logger.Write(LoggerLevel.Error, e.ToString());
+                        logger.Write(LoggerLevel.Error, e.Message);
                     }
                 }));
 
