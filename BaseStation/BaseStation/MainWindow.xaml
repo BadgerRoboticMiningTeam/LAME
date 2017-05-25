@@ -130,7 +130,7 @@
                 <Border Grid.Row="6" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <CheckBox x:Name="enableEncoderCheckBox" FontSize="14"
                         HorizontalAlignment="Center" VerticalAlignment="Center" 
-                        Checked="EnableEncoderCheckBoxChanged"
+                        Checked="EnableEncoderCheckBoxChanged" Unchecked="EnableEncoderCheckBoxChanged"
                         >Enable Encoder Drive
                     </CheckBox>
                 </Border>

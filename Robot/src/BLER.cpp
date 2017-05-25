@@ -403,7 +403,7 @@ void BLER::CameraSendThread()
     while (this->isRunning)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        this->SendCameraImage(0);
+        //this->SendCameraImage(0); // manual //
         this->SendCameraImage(1);
     }
 }
