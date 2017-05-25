@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
@@ -392,34 +393,47 @@ namespace BaseStation
 
                     if (a_pressed && (DateTime.Now - lastScooperToggle).Milliseconds > 250)
                     {
-                        scooper_speed = (scooper_speed + SCOOPER_INC) % 100;
+                        scooper_speed += SCOOPER_INC;
+                        if (scooper_speed > 100)
+                            scooper_speed = 0;
                         lastScooperToggle = DateTime.Now;
                     }
 
                     if (x_pressed && (DateTime.Now - lastVibratorToggle).Milliseconds > 250)
                     {
-                        vibrator_speed = (vibrator_speed + VIB_INC) % 100;
+                        vibrator_speed += VIB_INC;
+                        if (vibrator_speed > 100)
+                            vibrator_speed = 0;
                         lastVibratorToggle = DateTime.Now;
                     }
+                    
+                    bool driving = (leftY != 0) || (rightY != 0);
+                    bool act_on = actuator_speed != 0;
+                    bool vib_on = vibrator_speed != 0;
+                    bool zero_all = ((driving && act_on) || (driving && vib_on) || (act_on && vib_on));
+                    zero_all = false;
 
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        leftYTextBox.Text = leftY.ToString();
-                        rightYTextBox.Text = rightY.ToString();
-                        binTextBox.Text = actuator_speed.ToString();
-                        scooperTextBox.Text = scooper_speed.ToString();
-                        vibratorTextBox.Text = vibrator_speed.ToString();
+                        leftYTextBox.Text = zero_all ?  "0" : leftY.ToString();
+                        rightYTextBox.Text = zero_all ? "0" : rightY.ToString();
+                        binTextBox.Text = zero_all ? "0" : actuator_speed.ToString();
+                        scooperTextBox.Text = zero_all ? "0" : scooper_speed.ToString();
+                        vibratorTextBox.Text = zero_all ? "0" : vibrator_speed.ToString();
                     }));
 
                     if (!isConnected || currentDriveMode != DriveMode.Remote)
                         continue;
 
                     Drive speeds = new Drive();
-                    speeds.left = leftY;
-                    speeds.right = rightY;
-                    speeds.actuator = actuator_speed;
-                    speeds.scooper = scooper_speed;
-                    speeds.vibrator = vibrator_speed;
+                    if (!zero_all)
+                    {
+                        speeds.left = leftY;
+                        speeds.right = rightY;
+                        speeds.actuator = actuator_speed;
+                        speeds.scooper = scooper_speed;
+                        speeds.vibrator = vibrator_speed;
+                    }
 
                     // no change? don't send another packet
                     //if (lastPacket == speeds)
