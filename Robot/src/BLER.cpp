@@ -243,7 +243,8 @@ void BLER::SendCameraImage(int id)
         return;
 
     // convert to grayscale, then compress it //
-    cv::cvtColor(img, filtered, cv::COLOR_BGR2GRAY);
+    filtered = img;
+    //cv::cvtColor(img, filtered, cv::COLOR_BGR2GRAY);
     if (!cv::imencode(".jpg", filtered, raw_compressed_data, params))
     {
         std::cout << "Failed to encode camera data!" << std::endl;
@@ -402,7 +403,7 @@ void BLER::CameraSendThread()
 {
     while (this->isRunning)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         //this->SendCameraImage(0); // manual //
         this->SendCameraImage(1);
     }
