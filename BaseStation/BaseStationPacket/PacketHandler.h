@@ -26,7 +26,8 @@ namespace BaseStation
         REPORT_HEARTBEAT = REPORT_HEARTBEAT_OPCODE,
         ESTOP = ESTOP_OPCODE,
         CLEAR_ESTOP = CLEAR_ESTOP_OPCODE,
-        SET_CAMERA_QUALITY = SET_CAMERA_QUALITY_OPCODE
+        SET_CAMERA_QUALITY = SET_CAMERA_QUALITY_OPCODE,
+        SET_CAMERA_LOCATION = SET_CAMERA_LOCATION_OPCODE
     };
 
     public ref struct Drive
@@ -79,9 +80,18 @@ namespace BaseStation
         System::Int32 quality;
     };
 
+    public ref struct CameraLocation
+    {
+        System::Int32 id;
+        System::Int32 angle;
+    };
+
     public ref class PacketHandler
     {
     public:
+        static const int RearCameraID = REAR_CAMERA_ID;
+        static const int FrontCameraID = FRONT_CAMERA_ID;
+
         PacketHandler();
         array<System::Byte>^ GetQueryHeartbeatPacket();
         array<System::Byte>^ GetReportHeartbeatPacket();
@@ -91,10 +101,11 @@ namespace BaseStation
         array<System::Byte>^ GetQueryEncoderPacket();
         array<System::Byte>^ GetQueryCameraImagePacket();
         array<System::Byte>^ GetQueryCamera1ImagePacket();
-        array<System::Byte>^ GetDrivePacket(Drive^ drive);
         array<System::Byte>^ GetEnableEncoderPacket();
         array<System::Byte>^ GetDisableEncoderPacket();
+        array<System::Byte>^ GetDrivePacket(Drive^ drive);
         array<System::Byte>^ GetSetCameraQualityPacket(CameraQuality^ cq);
+        array<System::Byte>^ GetSetCameraLocationPacket(CameraLocation^ cl);
 
         Opcode GetPacketOpcode(array<System::Byte>^ buffer, System::Int32 length);
         System::Boolean ParseReportHeartbeatPacket(array<System::Byte>^ buffer, System::Int32 length);

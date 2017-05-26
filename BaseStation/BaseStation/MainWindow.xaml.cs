@@ -32,8 +32,17 @@ namespace BaseStation
         const int IMG_PORT = 11000;
         const double QUERY_HEARTBEAT_INTERVAL = 15e3;
         const int JS_DEADZONE = 15;
-        const int SCOOPER_INC = 25;
-        const int VIB_INC = 25;
+
+        const int SCOOPER_INC = 10;
+        const int SCOOPER_MIN = 10;
+        const int SCOOPER_MAX = 15;
+
+        const int VIB_INC = 10;
+        const int VIB_MAX = 30;
+
+        const int MAX_WHEEL_SPEED_DIFFERENCE = 15;
+        const int DEFAULT_SPEED_DIVISOR = 2;
+        const int MAX_SPEED_DIVISOR = 5;
 
         Logger logger;
         UdpClient packetSocket;
@@ -94,7 +103,9 @@ namespace BaseStation
             joystickReadThread.IsBackground = true;
             joystickReadThread.Start();
 
-            qualitySlider.Value = 5; // default
+            qualitySlider.Value = 15; // default
+            dispSlider.Value = -1;
+            vibSlider.Value = -1;
         }
 
         #region Threads & Callbacks
@@ -339,6 +350,7 @@ namespace BaseStation
             bool enumerate_js = true;
             int scooper_speed = 0;
             int vibrator_speed = 0;
+            int speed_divisor = DEFAULT_SPEED_DIVISOR;
 
             DateTime lastScooperToggle = DateTime.Now;
             DateTime lastVibratorToggle = DateTime.Now;
@@ -367,6 +379,7 @@ namespace BaseStation
                 {
                     bool a_pressed = false;
                     bool x_pressed = false;
+                    POV xbox_pov = POV.POV_NONE;
                     int actuator_speed = 0;
 
                     if (!xboxService.GetIDs().Contains(jsID))
@@ -387,12 +400,15 @@ namespace BaseStation
                     xboxService.GetRightTrigger(jsID, ref rightTrigger);
                     xboxService.GetButton(jsID, Xbox360Button.A, ref a_pressed);
                     xboxService.GetButton(jsID, Xbox360Button.X, ref x_pressed);
+                    xboxService.GetDpad(jsID, ref xbox_pov);
 
+                    // deadzone clamp //
                     if (Math.Abs(leftY) < JS_DEADZONE)
                         leftY = 0;
                     if (Math.Abs(rightY) < JS_DEADZONE)
                         rightY = 0;
 
+                    // LT lowers, RT raises //
                     if (leftTrigger != 0 && rightTrigger != 0)
                         actuator_speed = 0;
                     else if (leftTrigger != 0)
@@ -400,53 +416,95 @@ namespace BaseStation
                     else if (rightTrigger != 0)
                         actuator_speed = rightTrigger;
 
-                    if (a_pressed && (DateTime.Now - lastScooperToggle).Milliseconds > 250)
+                    // Move to next preset for scooper //
+                    if (a_pressed && (DateTime.Now - lastScooperToggle).Milliseconds > 200)
                     {
-                        scooper_speed += SCOOPER_INC;
-                        if (scooper_speed > 100)
-                            scooper_speed = 0;
+                        if (scooper_speed == 0)
+                        {
+                            scooper_speed = SCOOPER_MIN;
+                        }
+                        else
+                        {
+                            scooper_speed += SCOOPER_INC;
+                            if (scooper_speed > SCOOPER_MAX)
+                                scooper_speed = 0;
+                        }
                         lastScooperToggle = DateTime.Now;
                     }
 
-                    if (x_pressed && (DateTime.Now - lastVibratorToggle).Milliseconds > 250)
+                    // move to next preset for vibrator //
+                    if (x_pressed && (DateTime.Now - lastVibratorToggle).Milliseconds > 200)
                     {
                         vibrator_speed += VIB_INC;
-                        if (vibrator_speed > 100)
+                        if (vibrator_speed > VIB_MAX)
                             vibrator_speed = 0;
                         lastVibratorToggle = DateTime.Now;
                     }
+
+                    // read and correct for speed scaling //
+                    if (xbox_pov == POV.POV_NORTH)
+                    {
+                        speed_divisor = Util.Clamp(speed_divisor + 1, 1, MAX_SPEED_DIVISOR);
+                    }
+                    else if (xbox_pov == POV.POV_SOUTH)
+                    {
+                        speed_divisor = Util.Clamp(speed_divisor - 1, 1, MAX_SPEED_DIVISOR);
+                    }
+
+                    rightY /= speed_divisor;
+                    leftY /= speed_divisor;
+
+                    // adjust for max speed wheel difference //
+                    // direction with larger magnitude is taken //
+
+                    // abs diff > max allowed or if sign mismatch
+                    /*
+                    if (Math.Abs(Math.Abs(leftY) - Math.Abs(rightY)) > MAX_WHEEL_SPEED_DIFFERENCE || 
+                        ((leftY < 0 && rightY > 0) || (leftY > 0 && rightY < 0)))
+                    {
+                        if (Math.Abs(leftY) > Math.Abs(rightY))
+                        {
+                            rightY = (leftY > 0) ? leftY - MAX_WHEEL_SPEED_DIFFERENCE : leftY + MAX_WHEEL_SPEED_DIFFERENCE;
+                        }
+                        else
+                        {
+                            leftY = (rightY > 0) ? rightY - MAX_WHEEL_SPEED_DIFFERENCE : rightY + MAX_WHEEL_SPEED_DIFFERENCE;
+                        }
+                    }
+                    */
                     
-                    bool driving = (leftY != 0) || (rightY != 0);
-                    bool act_on = actuator_speed != 0;
-                    bool vib_on = vibrator_speed != 0;
-                    bool zero_all = ((driving && act_on) || (driving && vib_on) || (act_on && vib_on));
-                    zero_all = false;
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        // check for displacer override //
+                        int disp_override = (int)dispSlider.Value;
+                        int vib_override = (int)vibSlider.Value;
+
+                        if (disp_override >= 0)
+                            scooper_speed = disp_override;
+                        if (vib_override >= 0)
+                            vibrator_speed = vib_override;
+                    }));
+
 
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        leftYTextBox.Text = zero_all ?  "0" : leftY.ToString();
-                        rightYTextBox.Text = zero_all ? "0" : rightY.ToString();
-                        binTextBox.Text = zero_all ? "0" : actuator_speed.ToString();
-                        scooperTextBox.Text = zero_all ? "0" : scooper_speed.ToString();
-                        vibratorTextBox.Text = zero_all ? "0" : vibrator_speed.ToString();
+                        leftYTextBox.Text = leftY.ToString();
+                        rightYTextBox.Text = rightY.ToString();
+                        binTextBox.Text = actuator_speed.ToString();
+                        scooperTextBox.Text = scooper_speed.ToString();
+                        vibratorTextBox.Text = vibrator_speed.ToString();
+                        speedScaleTextBox.Text = string.Format("{0}%", 100 / speed_divisor);
                     }));
 
                     if (!isConnected || currentDriveMode != DriveMode.Remote)
                         continue;
 
                     Drive speeds = new Drive();
-                    if (!zero_all)
-                    {
-                        speeds.left = leftY;
-                        speeds.right = rightY;
-                        speeds.actuator = actuator_speed;
-                        speeds.scooper = scooper_speed;
-                        speeds.vibrator = vibrator_speed;
-                    }
-
-                    // no change? don't send another packet
-                    //if (lastPacket == speeds)
-                    //    continue;
+                    speeds.left = leftY;
+                    speeds.right = rightY;
+                    speeds.actuator = actuator_speed;
+                    speeds.scooper = scooper_speed;
+                    speeds.vibrator = vibrator_speed;
 
                     // update last packet, and send out
                     lastPacket = speeds;
@@ -558,23 +616,20 @@ namespace BaseStation
             packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
         }
 
-        void EnableEncoderCheckBoxChanged(object sender, RoutedEventArgs e)
+        void CameraLocationValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (!isConnected)
                 return;
 
-            bool? enc_enable = enableEncoderCheckBox.IsChecked;
-            if (!enc_enable.HasValue) // should not happen, not a tristate
-                return;
+            CameraLocation cl = new CameraLocation();
+            cl.angle = (int)camLocSlider.Value;
+            cl.id = PacketHandler.FrontCameraID;
 
-            if (enc_enable.Value)
-                logger.Write(LoggerLevel.Info, "Enabling encoder drive...");
-            else
-                logger.Write(LoggerLevel.Info, "Disabling encoder drive...");
-
-            byte[] buffer = enc_enable.Value ? handler.GetEnableEncoderPacket() : handler.GetDisableEncoderPacket();
+            logger.Write(LoggerLevel.Info, "Setting front cam to angle " + cl.angle);
+            byte[] buffer = handler.GetSetCameraLocationPacket(cl);
             packetSocket.Send(buffer, buffer.Length, robotPacketEndpoint);
         }
+
         #endregion
 
         #region GUI Conversion & Utility Methods

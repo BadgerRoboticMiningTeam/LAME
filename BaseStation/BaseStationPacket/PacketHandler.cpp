@@ -110,6 +110,26 @@ array<System::Byte>^ BaseStation::PacketHandler::GetSetCameraQualityPacket(Camer
     return managed_buffer;
 }
 
+array<System::Byte>^ BaseStation::PacketHandler::GetSetCameraLocationPacket(CameraLocation^ cl)
+{
+    uint8_t buffer[128];
+    CameraLocationPayload payload;
+    int bytes_written;
+
+    memset(buffer, 0, 128);
+    memset(&payload, 0, sizeof(CameraLocationPayload));
+
+    payload.id = cl->id;
+    payload.angle = cl->angle;
+    
+    bytes_written = CreateSetCameraLocationPacket(buffer, 128, payload);
+
+    array<System::Byte>^ managed_buffer = gcnew array<System::Byte>(bytes_written);
+    for (int i = 0; i < bytes_written; i++)
+        managed_buffer[i] = buffer[i];
+    return managed_buffer;
+}
+
 Opcode BaseStation::PacketHandler::GetPacketOpcode(array<System::Byte>^ buffer, System::Int32 length)
 {
     pin_ptr<uint8_t> pinned = &buffer[0];

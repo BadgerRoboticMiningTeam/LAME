@@ -39,6 +39,7 @@ extern "C" {
 #define QUERY_CAMERA_IMAGE_OPCODE                       0x13
 #define QUERY_CAMERA1_IMAGE_OPCODE                      0x15
 #define SET_CAMERA_QUALITY_OPCODE                       0x16
+#define SET_CAMERA_LOCATION_OPCODE                      0x17
 
 #define QUERY_HEARTBEAT_OPCODE                          0x14
 #define REPORT_HEARTBEAT_OPCODE                         0x44
@@ -46,6 +47,8 @@ extern "C" {
 #define ESTOP_OPCODE                                    0xAA
 #define CLEAR_ESTOP_OPCODE                              0xAB
 
+#define REAR_CAMERA_ID                                  0
+#define FRONT_CAMERA_ID                                 1
 
 // payload structs //
 struct DrivePayload
@@ -77,6 +80,12 @@ struct EncoderPayload
 struct CameraQualityPayload
 {
     uint8_t quality;
+};
+
+struct CameraLocationPayload
+{
+    uint8_t id;
+    int8_t angle; // range of motion is -90 = left, 0 = center, +90 = right
 };
 
 // functions //
@@ -257,11 +266,26 @@ static int CreateSetQualityCameraPacket(uint8_t *buffer, uint8_t length, struct 
 
     buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
     buffer[PKT_OP_INDEX] = SET_CAMERA_QUALITY_OPCODE;
-    buffer[PKT_PAYLOAD_SIZE_INDEX] = 5;
+    buffer[PKT_PAYLOAD_SIZE_INDEX] = 1;
     buffer[PKT_PAYLOAD_START_INDEX] = payload.quality;
     buffer[PKT_PAYLOAD_START_INDEX + 1] = PKT_END_BYTE;
 
     return encodeCOBS(buffer, PKT_MIN_SIZE + 1);
+}
+
+static int CreateSetCameraLocationPacket(uint8_t *buffer, uint8_t length, struct CameraLocationPayload payload)
+{
+    if (length < PKT_MIN_SIZE + 2)
+        return 0;
+
+    buffer[PKT_HDR_INDEX] = PKT_HEADER_BYTE;
+    buffer[PKT_OP_INDEX] = SET_CAMERA_LOCATION_OPCODE;
+    buffer[PKT_PAYLOAD_SIZE_INDEX] = 2;
+    buffer[PKT_PAYLOAD_START_INDEX] = payload.id;
+    buffer[PKT_PAYLOAD_START_INDEX + 1] = payload.angle;
+    buffer[PKT_PAYLOAD_START_INDEX + 2] = PKT_END_BYTE;
+
+    return encodeCOBS(buffer, PKT_MIN_SIZE + 2);
 }
 
 static int CreateReportLocationPacket(uint8_t *buffer, uint8_t length, struct LocationPayload payload)
@@ -362,6 +386,15 @@ static void ParseQualityPayload(uint8_t *payload, struct CameraQualityPayload *c
         return;
 
     cam->quality = payload[0];
+}
+
+static void ParseCameraLocationPayload(uint8_t *payload, struct CameraLocationPayload *clp)
+{
+    if (!payload || !clp)
+        return;
+
+    clp->id = payload[0];
+    clp->angle = payload[1];
 }
 
 #ifdef _cplusplus

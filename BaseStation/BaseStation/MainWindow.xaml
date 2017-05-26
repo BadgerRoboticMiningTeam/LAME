@@ -21,10 +21,11 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
                     <RowDefinition Height="0.5*"/>
                     <RowDefinition Height="0.5*"/>
-                    <RowDefinition Height="0.5*"/>
-                    <RowDefinition Height="2.5*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
@@ -107,65 +108,60 @@
                 <!-- Quality setter -->
                 <Border Grid.Row="3" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <DockPanel VerticalAlignment="Center">
+                        <Label>📷 Q</Label>
                         <TextBox Text="{Binding ElementName=qualitySlider, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Center" Width="40" />
                         <Slider Maximum="100" TickPlacement="BottomRight" TickFrequency="5" IsSnapToTickEnabled="True" Name="qualitySlider" ValueChanged="QualityValueChanged"/>
                     </DockPanel>
                 </Border>
-                
-                <!-- request camera 1 image block -->
+
+                <!-- Camera Location -->
                 <Border Grid.Row="4" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <DockPanel VerticalAlignment="Center">
+                        <Label>📷 Loc</Label>
+                        <TextBox Text="{Binding ElementName=camLocSlider, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Center" Width="40" />
+                        <Slider Maximum="90" Minimum="-90" TickPlacement="BottomRight" TickFrequency="5" IsSnapToTickEnabled="True" Name="camLocSlider" ValueChanged="CameraLocationValueChanged"/>
+                    </DockPanel>
+                </Border>
+
+                <!-- request camera 1 image block -->
+                <Border Grid.Row="5" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <Button x:Name="requestCameraButton" IsEnabled="False" FontSize="16" Click="RequestImageClicked" Background="Goldenrod">
                         Request Camera 1 Image
                     </Button>
                 </Border>
 
                 <!-- request camera 2 image block -->
-                <Border Grid.Row="5" BorderBrush="Black" BorderThickness="0 0 0 1">
+                <Border Grid.Row="6" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <Button x:Name="requestCamera1Button" IsEnabled="False" FontSize="16" Click="RequestImage1Clicked" Background="Goldenrod">
                         Request Camera 2 Image
                     </Button>
                 </Border>
 
-                <!-- Enable/Disable Encoder block -->
-                <Border Grid.Row="6" BorderBrush="Black" BorderThickness="0 0 0 1">
-                    <CheckBox x:Name="enableEncoderCheckBox" FontSize="14"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" 
-                        Checked="EnableEncoderCheckBoxChanged" Unchecked="EnableEncoderCheckBoxChanged"
-                        >Enable Encoder Drive
-                    </CheckBox>
+                <!-- Vibrator -->
+                <Border Grid.Row="7" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <DockPanel VerticalAlignment="Center">
+                        <Label>Vib</Label>
+                        <TextBox Text="{Binding ElementName=vibSlider, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Center" Width="40" />
+                        <Slider Maximum="100" Minimum="-1" TickPlacement="BottomRight" TickFrequency="10" IsSnapToTickEnabled="True" Name="vibSlider"/>
+                    </DockPanel>
                 </Border>
 
-                <!-- ???? block -->
-                <Border Grid.Row="7" BorderBrush="Black" BorderThickness="0 0 0 1" Background="LightGray">
+                <!-- Displacer -->
+                <Border Grid.Row="8" BorderBrush="Black" BorderThickness="0 0 0 1">
+                    <DockPanel VerticalAlignment="Center">
+                        <Label>Dis</Label>
+                        <TextBox Text="{Binding ElementName=dispSlider, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Center" Width="40" />
+                        <Slider Maximum="100" Minimum="-1" TickPlacement="BottomRight" TickFrequency="10" IsSnapToTickEnabled="True" Name="dispSlider"/>
+                    </DockPanel>
                 </Border>
 
                 <!-- "Go" button -->
-                <Border Grid.Row="8" BorderBrush="Black" BorderThickness="0 0 0 1">
+                <Border Grid.Row="10" BorderBrush="Black" BorderThickness="0 0 0 1">
                     <Button Background="Green" Foreground="White"
                             FontSize="24"  x:Name="goButton" Click="GoButtonClicked">
                         Start
                     </Button>
                 </Border>
-
-                <!-- e-stop -->
-                <Grid Grid.Row="9">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Button Grid.Column="0" Background="Red" 
-                            FontSize="16" Foreground="White"
-                            x:Name="eStopButton" IsEnabled="False">
-                        E-STOP
-                    </Button>
-
-                    <Button Grid.Column="1" Background="Gray"
-                            FontSize="16" Foreground="White"
-                            x:Name="clearEStopButton" IsEnabled="False">
-                        Clear E-Stop
-                    </Button>
-                </Grid>
             </Grid>
         </Border>
 
@@ -201,7 +197,8 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="3*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="2*"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -220,7 +217,7 @@
                     </Label>
 
                     <TextBox Grid.Row="0" Grid.Column="1"
-                                IsReadOnly="False" HorizontalContentAlignment="Center"
+                                IsReadOnly="True" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
                                 x:Name="jsIdTextBox">
                         N/A
@@ -233,7 +230,7 @@
                     </Label>
 
                     <TextBox Grid.Row="0" Grid.Column="3"
-                                IsReadOnly="False" HorizontalContentAlignment="Center"
+                                IsReadOnly="True" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
                                 x:Name="leftYTextBox">
                         0
@@ -246,7 +243,7 @@
                     </Label>
 
                     <TextBox Grid.Row="0" Grid.Column="5"
-                                IsReadOnly="False" HorizontalContentAlignment="Center"
+                                IsReadOnly="True" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
                                 x:Name="rightYTextBox">
                         0
@@ -260,7 +257,7 @@
                     </Label>
 
                     <TextBox Grid.Row="1" Grid.Column="1"
-                                IsReadOnly="False" HorizontalContentAlignment="Center"
+                                IsReadOnly="True" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
                                 x:Name="binTextBox">
                         0
@@ -273,7 +270,7 @@
                     </Label>
 
                     <TextBox Grid.Row="1" Grid.Column="3"
-                                IsReadOnly="False" HorizontalContentAlignment="Center"
+                                IsReadOnly="True" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
                                 x:Name="vibratorTextBox">
                         0
@@ -286,10 +283,23 @@
                     </Label>
 
                     <TextBox Grid.Row="1" Grid.Column="5"
-                                IsReadOnly="False" HorizontalContentAlignment="Center"
+                                IsReadOnly="True" HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center" FontSize="20"
                                 x:Name="scooperTextBox">
                         0
+                    </TextBox>
+
+                    <Label Grid.Row="2" Grid.Column="0"
+                                FontWeight="Bold" FontSize="20"
+                                HorizontalContentAlignment="Center">
+                        ×
+                    </Label>
+
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                                IsReadOnly="True" HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center" FontSize="20"
+                                x:Name="speedScaleTextBox">
+                        100%
                     </TextBox>
                 </Grid>
             </Border>

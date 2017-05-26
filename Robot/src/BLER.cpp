@@ -15,7 +15,7 @@ constexpr int BAUD_RATE = 9600;
 
 std::vector<int> params = {
     CV_IMWRITE_JPEG_QUALITY,
-    5
+    15
 };
 
 
