@@ -1,9 +1,17 @@
 :: Windows build script for LAME
+:: Builds only the base station code
 @ECHO OFF
 
-:: MSBUILD directories
-@if exist "%ProgramFiles%\MSBuild\14.0\bin" set msbuild="%ProgramFiles%\MSBuild\14.0\bin"
-@if exist "%ProgramFiles(x86)%\MSBuild\14.0\bin" set msbuild="%ProgramFiles(x86)%\MSBuild\14.0\bin"
+:: Find MsBuild
+for /f "usebackq tokens=*" %%i in (`.\tools\vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
+  set msbuild=%%i
+)
+
+if exist "%msbuild%\MSBuild\15.0\Bin\MSBuild.exe" (
+  set msbuild="%msbuild%\MSBuild\15.0\Bin"
+)
+
+
 
 :: /f or clean as cmd args?
 IF /I [%1]==[] (
@@ -19,7 +27,7 @@ IF /I [%1]==[] (
 
 :CLEAN
     IF EXIST ".\JoystickLibrary" ( rd /s /q JoystickLibrary )
-    del BaseStation\*.dll BaseStation\*.lib Robot\*.lib BaseStation\*.pdb Robot\*.pdb
+    del BaseStation\*.dll BaseStation\*.lib BaseStation\*.pdb Robot\*.pdb
     goto :eof
 
 :: If no switches specified, go down this path
@@ -46,18 +54,8 @@ IF /I [%1]==[] (
     :: Ensure repo is up to date
     git pull
     echo ==== Building Dependencies ====
-    del BaseStation\*.dll BaseStation\*.lib Robot\*.lib BaseStation\*.pdb Robot\*.pdb
+    del BaseStation\*.dll BaseStation\*.lib BaseStation\*.pdb
     pushd .
-    
-    :: JoystickLibrary, C++
-    pushd .
-    cd JoystickLibrary\cpp
-    IF EXIST ".\build" ( rd /s /q build )
-    mkdir build && cd build
-    cmake -DCMAKE_GENERATOR_PLATFORM=x64 ..
-    cmake --build .
-    copy src\Debug\JoystickLibrary.* ..\..\..\Robot
-    popd
     
     :: JoystickLibrary, C#
     pushd
