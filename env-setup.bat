@@ -11,8 +11,6 @@ if exist "%msbuild%\MSBuild\15.0\Bin\MSBuild.exe" (
   set msbuild="%msbuild%\MSBuild\15.0\Bin"
 )
 
-
-
 :: /f or clean as cmd args?
 IF /I [%1]==[] (
     goto MAYBE_CLONE_DEP
